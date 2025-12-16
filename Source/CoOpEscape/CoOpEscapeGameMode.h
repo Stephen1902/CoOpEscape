@@ -14,6 +14,3 @@ class ACoOpEscapeGameMode : public AGameModeBase
 public:
 	ACoOpEscapeGameMode();
 };
-
-
-
