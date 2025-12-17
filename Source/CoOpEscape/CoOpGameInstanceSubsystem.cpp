@@ -4,7 +4,10 @@
 
 void PrintString(const FString& StringToDisplay)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, StringToDisplay);
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, StringToDisplay);
+	}
 }
 
 UCoOpGameInstanceSubsystem::UCoOpGameInstanceSubsystem()
