@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "Interfaces/OnlineSessionInterface.h"
 #include "CoOpGameInstanceSubsystem.generated.h"
 
 /**
@@ -19,5 +20,7 @@ public:
 
 	void Initialize(FSubsystemCollectionBase& Collection) override;
 	void Deinitialize() override;
-	
+
+protected:
+	IOnlineSessionPtr SessionInterface;
 };

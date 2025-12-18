@@ -25,6 +25,16 @@ void AMainMenuPawn::BeginPlay()
 	{
 		UMainMenuWidget* MainMenuWidget = CreateWidget<UMainMenuWidget>(GetWorld(), MainMenuWidgetRef);
 		MainMenuWidget->AddToViewport();
+		APlayerController* PC = Cast<APlayerController>(GetController());
+		if (PC)
+		{
+			PC->SetShowMouseCursor(true);
+			PC->SetInputMode(FInputModeUIOnly());
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Failed to get a player controller"));
+		}
 	}
 	else
 	{
