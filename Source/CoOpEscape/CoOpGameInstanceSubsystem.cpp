@@ -42,3 +42,13 @@ void UCoOpGameInstanceSubsystem::Deinitialize()
 
 //	UE_LOG(LogTemp, Warning, TEXT("Subsystem Deinitiliaze"))
 }
+
+void UCoOpGameInstanceSubsystem::CreateServer(FString ServerName)
+{
+	PrintString(ServerName);
+}
+
+void UCoOpGameInstanceSubsystem::JoinServer(FString ServerName)
+{
+	PrintString(ServerName);
+}

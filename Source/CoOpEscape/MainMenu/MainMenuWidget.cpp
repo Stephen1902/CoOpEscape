@@ -3,6 +3,7 @@
 #include "MainMenuWidget.h"
 
 #include "Components/Button.h"
+#include "CoOpEscape/CoOpGameInstanceSubsystem.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 void UMainMenuWidget::NativeConstruct()
@@ -16,12 +17,25 @@ void UMainMenuWidget::NativeConstruct()
 
 void UMainMenuWidget::HostGameButtonPressed()
 {
+	if (UGameInstance* GameInstance = GetGameInstance())
+	{
+		if (UCoOpGameInstanceSubsystem* GameInstanceSubsystem = GameInstance->GetSubsystem<UCoOpGameInstanceSubsystem>())
+		{
+			GameInstanceSubsystem->CreateServer("Create Server");
+		}
+	}
 	
 }
 
 void UMainMenuWidget::JoinGameButtonPressed()
 {
-	
+	if (const UGameInstance* GameInstance = GetGameInstance())
+	{
+		if (UCoOpGameInstanceSubsystem* GameInstanceSubsystem = GameInstance->GetSubsystem<UCoOpGameInstanceSubsystem>())
+		{
+			GameInstanceSubsystem->JoinServer("Join Server");
+		}
+	}
 }
 
 void UMainMenuWidget::QuitGameButtonPressed()

@@ -25,8 +25,7 @@ void AMainMenuPawn::BeginPlay()
 	{
 		UMainMenuWidget* MainMenuWidget = CreateWidget<UMainMenuWidget>(GetWorld(), MainMenuWidgetRef);
 		MainMenuWidget->AddToViewport();
-		APlayerController* PC = Cast<APlayerController>(GetController());
-		if (PC)
+		if (APlayerController* PC = Cast<APlayerController>(GetController()))
 		{
 			PC->SetShowMouseCursor(true);
 			PC->SetInputMode(FInputModeUIOnly());
