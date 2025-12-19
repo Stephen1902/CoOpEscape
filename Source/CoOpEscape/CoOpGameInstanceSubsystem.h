@@ -29,4 +29,17 @@ public:
 	
 protected:
 	IOnlineSessionPtr SessionInterface;
+
+private:
+	bool bCreateServerAfterDestroy;
+	
+	FString LocalServerName;
+	
+	// Function to be called when the Create Session delegate has completed
+	UFUNCTION()
+	void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
+
+	// Function to be called when the Destroy Session delegate has completed
+	UFUNCTION()
+	void OnDestroySessionComplete(FName SessionName, bool bWasSuccessful);
 };
