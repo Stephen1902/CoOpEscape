@@ -3,6 +3,7 @@
 #include "CoOpGameInstanceSubsystem.h"
 #include "OnlineSubsystem.h"
 #include "OnlineSessionSettings.h"
+#include "Online/OnlineSessionNames.h"
 
 void PrintString(const FString& StringToDisplay)
 {
@@ -16,22 +17,29 @@ UCoOpGameInstanceSubsystem::UCoOpGameInstanceSubsystem()
 {
 //	PrintString("Subsystem Construct");
 
+	OnlineSubsystem = nullptr;
 	bCreateServerAfterDestroy = false;
+	DestroyServerName = "";
+	ServerNameToFind = "";
+	MySessionName = FName("Co-op Escape Session Name");
 }
 
 void UCoOpGameInstanceSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
-//	PrintString("Subsystem Initialize");
-	IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get();
+	OnlineSubsystem = IOnlineSubsystem::Get();
 	if (OnlineSubsystem)
 	{
+		SubsystemName = OnlineSubsystem->GetSubsystemName().ToString();
+		PrintString(SubsystemName);
 		SessionInterface = OnlineSubsystem->GetSessionInterface();
 		if (SessionInterface.IsValid())
 		{
 			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UCoOpGameInstanceSubsystem::OnCreateSessionComplete);
 			SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UCoOpGameInstanceSubsystem::OnDestroySessionComplete);
+			SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UCoOpGameInstanceSubsystem::OnFindSessionsComplete);
+			SessionInterface->OnJoinSessionCompleteDelegates.AddUObject(this, &UCoOpGameInstanceSubsystem::OnJoinSessionComplete);
 		}
 	}
 }
@@ -47,41 +55,63 @@ void UCoOpGameInstanceSubsystem::CreateServer(FString ServerName)
 {
 	if (ServerName.IsEmpty())
 	{
-		PrintString("Server Name cannot be empty.");
+		PrintString(TEXT("Server name cannot be empty"));
 		return;
 	}
-
-	LocalServerName = ServerName;
-	FName MySessionName = FName("Co-Op Session Name");
-
-	// Check if the session name already exists, destroy it if it does
-	if (SessionInterface->GetNamedSession(MySessionName))
+	
+	// Check if a session already exists, destroy it if it does
+	if (const FNamedOnlineSession* ExistingSession = SessionInterface->GetNamedSession(MySessionName))
 	{
-		PrintString("Session exists.  Destroying.");
 		bCreateServerAfterDestroy = true;
+		DestroyServerName = ServerName;
 		SessionInterface->DestroySession(MySessionName);
 		return;
 	}
-
-	FOnlineSessionSettings MySessionSettings;
-	MySessionSettings.bAllowJoinInProgress = true;
-	MySessionSettings.bIsDedicated = false;
-	MySessionSettings.bShouldAdvertise = true;
-	MySessionSettings.NumPublicConnections = 2;
-	MySessionSettings.bUseLobbiesIfAvailable = true;
-	MySessionSettings.bUsesPresence = true;
-	MySessionSettings.bAllowJoinViaPresence = true;
-
-	// Check whether the game is using the Steam API or not and set LAN match accordingly
-	FString SubsystemName = IOnlineSubsystem::Get()->GetSubsystemName().ToString();
-	MySessionSettings.bIsLANMatch = SubsystemName == "NULL" ? true : false;
 	
-	SessionInterface->CreateSession(0, MySessionName, MySessionSettings);
+	FOnlineSessionSettings SessionSettings;
+	SessionSettings.bAllowJoinInProgress = true;  // Whether to allow players to join mid-session
+	SessionSettings.bIsDedicated = false;  // Whether dedicated or a listen server
+	SessionSettings.bShouldAdvertise = true;  // Whether the game should advertise itself
+	SessionSettings.NumPublicConnections = 2;  // The number of players that can be in the game in total
+	SessionSettings.bUseLobbiesIfAvailable = true;  // Must be here for session to work
+	SessionSettings.bUsesPresence = true;  // Steam uses presence.  Must be true
+	SessionSettings.bAllowJoinViaPresence = true;
+	if (SubsystemName == "NULL")
+	{
+		SessionSettings.bIsLANMatch = true;
+	}
+	else
+	{
+		SessionSettings.bIsLANMatch = false;
+	}
+	SessionSettings.Set(FName("DME_SERVER01"), ServerName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
+	
+	SessionInterface->CreateSession(0, MySessionName, SessionSettings);
 }
 
 void UCoOpGameInstanceSubsystem::JoinServer(FString ServerName)
 {
-	PrintString(ServerName);
+	if (ServerName.IsEmpty())
+	{
+		PrintString("ServerName cannot be empty");
+		return;
+	}
+
+	SessionSearch = MakeShareable(new FOnlineSessionSearch());
+	if (SubsystemName == "NULL")
+	{
+		SessionSearch->bIsLanQuery = true;
+	}
+	else
+	{
+		SessionSearch->bIsLanQuery = false;
+	}
+	SessionSearch->MaxSearchResults = 128;
+	SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+
+	ServerNameToFind = ServerName;
+	
+	SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
 }
 
 void UCoOpGameInstanceSubsystem::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
@@ -96,12 +126,72 @@ void UCoOpGameInstanceSubsystem::OnCreateSessionComplete(FName SessionName, bool
 
 void UCoOpGameInstanceSubsystem::OnDestroySessionComplete(FName SessionName, bool bWasSuccessful)
 {
-	if (bWasSuccessful)
+	if (bWasSuccessful && bCreateServerAfterDestroy)
 	{
-		if (bCreateServerAfterDestroy)
+		bCreateServerAfterDestroy = false;
+		CreateServer(DestroyServerName);
+	}
+}
+
+void UCoOpGameInstanceSubsystem::OnFindSessionsComplete(bool WasSuccessful)
+{
+	if (WasSuccessful && !ServerNameToFind.IsEmpty())
+	{
+		TArray<FOnlineSessionSearchResult> SearchResults = SessionSearch->SearchResults;
+		FOnlineSessionSearchResult* CorrectResult = nullptr;
+		if (SearchResults.Num() > 0)
 		{
-			bCreateServerAfterDestroy = false;
-			CreateServer(LocalServerName);
+			for (FOnlineSessionSearchResult SearchResult : SearchResults)
+			{
+				if (SearchResult.IsValid())
+				{
+					FString FoundServerName = "DME_NOSERVER";
+					SearchResult.Session.SessionSettings.Get(FName("DME_SERVER01"), FoundServerName);
+					if (ServerNameToFind == FoundServerName)
+					{
+						CorrectResult = &SearchResult;
+						const FString Msg = FString::Printf(TEXT("Server found with name %s"), *FoundServerName);
+						PrintString(Msg);
+						break;
+					}
+				}
+			}
+
+			if (CorrectResult)
+			{
+				SessionInterface->JoinSession(0, MySessionName, *CorrectResult);
+			}
+			else
+			{
+				OnAttemptServerJoin.Broadcast(false);
+				PrintString("Couldn't find server");
+			}
+		}
+		else
+		{
+			OnAttemptServerJoin.Broadcast(false);
+			PrintString("No servers found");
 		}
 	}
 }
+
+void UCoOpGameInstanceSubsystem::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type JoinResult)
+{
+	if (JoinResult == EOnJoinSessionCompleteResult::Success)
+	{
+		FString ServerIP = "";
+		if (SessionInterface->GetResolvedConnectString(SessionName, ServerIP))
+		{
+			if (APlayerController* PC = GetGameInstance()->GetFirstLocalPlayerController())
+			{
+				PC->ClientTravel(ServerIP, TRAVEL_Absolute);
+			}
+		}
+	}
+	else
+	{
+		OnAttemptServerJoin.Broadcast(false);
+		PrintString("On Join Session Complete called but failed");
+	}
+}
+
