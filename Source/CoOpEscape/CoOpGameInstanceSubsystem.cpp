@@ -1,8 +1,10 @@
 // Copyright 2025 DME Games
 
 #include "CoOpGameInstanceSubsystem.h"
+#include <string>
 #include "OnlineSubsystem.h"
 #include "OnlineSessionSettings.h"
+#include "MainMenu/MainMenuWidget.h"
 #include "Online/OnlineSessionNames.h"
 
 void PrintString(const FString& StringToDisplay)
@@ -22,6 +24,9 @@ UCoOpGameInstanceSubsystem::UCoOpGameInstanceSubsystem()
 	DestroyServerName = "";
 	ServerNameToFind = "";
 	MySessionName = FName("Co-op Escape Session Name");
+
+	MenuRef = nullptr;
+	
 }
 
 void UCoOpGameInstanceSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -48,7 +53,7 @@ void UCoOpGameInstanceSubsystem::Deinitialize()
 {
 	Super::Deinitialize();
 	
-//	UE_LOG(LogTemp, Warning, TEXT("Subsystem Deinitiliaze"))
+//	UE_LOG(LogTemp, Warning, TEXT("Subsystem Deinitialize"))
 }
 
 void UCoOpGameInstanceSubsystem::CreateServer(FString ServerName)
@@ -89,29 +94,64 @@ void UCoOpGameInstanceSubsystem::CreateServer(FString ServerName)
 	SessionInterface->CreateSession(0, MySessionName, SessionSettings);
 }
 
-void UCoOpGameInstanceSubsystem::JoinServer(FString ServerName)
+void UCoOpGameInstanceSubsystem::JoinSearchButtonClicked(UMainMenuWidget* MenuRefIn)
 {
-	if (ServerName.IsEmpty())
-	{
-		PrintString("ServerName cannot be empty");
-		return;
-	}
+	MenuRef = MenuRefIn;
+ 	SearchForSessions();
+}
 
-	SessionSearch = MakeShareable(new FOnlineSessionSearch());
-	if (SubsystemName == "NULL")
+void UCoOpGameInstanceSubsystem::JoinServerButtonClicked(int32 IndexIn)
+{
+	if (!SessionInterface.IsValid() || !SessionSearch.IsValid()) return;
+
+	SessionInterface->JoinSession(0, FName("DME_SERVER01"), SessionSearch->SearchResults[IndexIn]);
+/*	FOnlineSessionSearchResult* CorrectResult = nullptr;
+	for (FOnlineSessionSearchResult SearchResult : SearchResults)
 	{
-		SessionSearch->bIsLanQuery = true;
+		
+		if (SearchResult.IsValid())
+		{
+			FString FoundServerName = "DME_NOSERVER";
+			SearchResult.Session.SessionSettings.Get(FName("DME_SERVER01"), FoundServerName);
+			PrintString("ServerNameIn " + IndexIn.ToString() + "FoundServerName" + FoundServerName);
+			if (IndexIn.ToString() == FoundServerName)
+			{
+				CorrectResult = &SearchResult;
+				const FString Msg = FString::Printf(TEXT("Server found with name %s"), *FoundServerName);
+				PrintString(Msg);
+				break;
+			}
+		}
+	}
+	
+	if (CorrectResult)
+	{
+		SessionInterface->JoinSession(0, MySessionName, *CorrectResult);
+		PrintString("Found server");
 	}
 	else
 	{
-		SessionSearch->bIsLanQuery = false;
+	//	OnAttemptServerJoin.Broadcast(false);
+		PrintString("Couldn't find server");
 	}
-	SessionSearch->MaxSearchResults = 128;
-	SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+	*/
+}
 
-	ServerNameToFind = ServerName;
-	
-	SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
+void UCoOpGameInstanceSubsystem::SearchForSessions()
+{
+	SessionSearch = MakeShareable(new FOnlineSessionSearch());
+    if (SubsystemName == "NULL")
+    {
+    	SessionSearch->bIsLanQuery = true;
+    }
+    else
+    {
+    	SessionSearch->bIsLanQuery = false;
+    }
+    SessionSearch->MaxSearchResults = 128;
+    SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+    	
+    SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
 }
 
 void UCoOpGameInstanceSubsystem::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
@@ -135,43 +175,24 @@ void UCoOpGameInstanceSubsystem::OnDestroySessionComplete(FName SessionName, boo
 
 void UCoOpGameInstanceSubsystem::OnFindSessionsComplete(bool WasSuccessful)
 {
-	if (WasSuccessful && !ServerNameToFind.IsEmpty())
+	if (WasSuccessful && MenuRef)
 	{
-		TArray<FOnlineSessionSearchResult> SearchResults = SessionSearch->SearchResults;
-		FOnlineSessionSearchResult* CorrectResult = nullptr;
+		SearchResults = SessionSearch->SearchResults;
+		FString StringToDisplay = "Servers found:" + FString::FromInt(SearchResults.Num());
+		PrintString(*StringToDisplay);
+		
 		if (SearchResults.Num() > 0)
 		{
-			for (FOnlineSessionSearchResult SearchResult : SearchResults)
-			{
-				if (SearchResult.IsValid())
-				{
-					FString FoundServerName = "DME_NOSERVER";
-					SearchResult.Session.SessionSettings.Get(FName("DME_SERVER01"), FoundServerName);
-					if (ServerNameToFind == FoundServerName)
-					{
-						CorrectResult = &SearchResult;
-						const FString Msg = FString::Printf(TEXT("Server found with name %s"), *FoundServerName);
-						PrintString(Msg);
-						break;
-					}
-				}
-			}
-
-			if (CorrectResult)
-			{
-				SessionInterface->JoinSession(0, MySessionName, *CorrectResult);
-			}
-			else
-			{
-				OnAttemptServerJoin.Broadcast(false);
-				PrintString("Couldn't find server");
-			}
+			MenuRef->PopulateServerScrollBox(SearchResults);
 		}
 		else
 		{
-			OnAttemptServerJoin.Broadcast(false);
-			PrintString("No servers found");
+			MenuRef->FailedToFindServer();
 		}
+	}
+	else
+	{
+		
 	}
 }
 
@@ -190,7 +211,6 @@ void UCoOpGameInstanceSubsystem::OnJoinSessionComplete(FName SessionName, EOnJoi
 	}
 	else
 	{
-		OnAttemptServerJoin.Broadcast(false);
 		PrintString("On Join Session Complete called but failed");
 	}
 }

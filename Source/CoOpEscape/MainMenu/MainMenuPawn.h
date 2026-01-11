@@ -22,4 +22,7 @@ protected:
 
 private:
 	TSubclassOf<class UMainMenuWidget> MainMenuWidgetRef;
+
+	UPROPERTY()
+	UMainMenuWidget* MainMenuWidget;
 };

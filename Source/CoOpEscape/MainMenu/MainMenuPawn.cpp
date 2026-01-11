@@ -23,7 +23,7 @@ void AMainMenuPawn::BeginPlay()
 
 	if (MainMenuWidgetRef)
 	{
-		UMainMenuWidget* MainMenuWidget = CreateWidget<UMainMenuWidget>(GetWorld(), MainMenuWidgetRef);
+		MainMenuWidget = CreateWidget<UMainMenuWidget>(GetWorld(), MainMenuWidgetRef);
 		MainMenuWidget->AddToViewport();
 		if (APlayerController* PC = Cast<APlayerController>(GetController()))
 		{

@@ -4,9 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Interfaces/OnlineSessionInterface.h"
+#include "OnlineSessionSettings.h"
 #include "CoOpGameInstanceSubsystem.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttemptServerJoin, bool, Successful);
 /**
  * 
  */
@@ -23,20 +23,25 @@ public:
 	
 	IOnlineSessionPtr SessionInterface;
 
-	UFUNCTION(BlueprintCallable, Category = "Multiplayer Subsystem")
+	UFUNCTION()
 	void CreateServer(const FString ServerName);
 
-	UFUNCTION(BlueprintCallable, Category = "Multiplayer Subsystem")
-	void JoinServer(const FString ServerName);
+	UFUNCTION()
+	void JoinSearchButtonClicked(class UMainMenuWidget* MenuRefIn);
+	
+	UFUNCTION()
+	void JoinServerButtonClicked(int32 IndexIn);
 
-	UPROPERTY(BlueprintAssignable)
-	FOnAttemptServerJoin OnAttemptServerJoin;
+	void SearchForSessions();
 
 private:
 	class IOnlineSubsystem* OnlineSubsystem;
 	FString SubsystemName;
 	FName MySessionName;
 
+	// When searching for a server, results are stored here
+	TArray<FOnlineSessionSearchResult> SearchResults;
+	
 	// Function to be called when the Create Session delegate has completed
 	void OnCreateSessionComplete(FName SessionName, bool WasSuccessful);
 
@@ -53,5 +58,8 @@ private:
 	FString DestroyServerName;
 	FString ServerNameToFind;
 
-	TSharedPtr<FOnlineSessionSearch> SessionSearch; 
+	TSharedPtr<FOnlineSessionSearch> SessionSearch;
+
+	UPROPERTY()
+	UMainMenuWidget* MenuRef;
 };
