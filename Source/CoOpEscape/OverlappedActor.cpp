@@ -20,10 +20,10 @@ AOverlappedActor::AOverlappedActor()
 	
 	DisplayMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Display Mesh"));
 	DisplayMesh->SetupAttachment(RootComp);
+	DisplayMesh->SetIsReplicated(true);
 	
 	bIsActivated = false;
-	OverlapCheckTime = 0.1f;
-
+	OverlapCheckTime = 0.1f;  // 10 times per second
 }
 
 // Called when the game starts or when spawned
@@ -42,35 +42,47 @@ void AOverlappedActor::BeginPlay()
 
 void AOverlappedActor::OnOverlapTimerEnded()
 {
+	// Get all actors overlapping this one.
 	TArray<AActor*> OverlappingActors;
 	TriggerBox->GetOverlappingActors(OverlappingActors);
-	AActor* TriggeringActor = nullptr;
 
-	for (int i = 0; i < OverlappingActors.Num(); ++i)
+	if (OverlappingActors.Num() > 0)
 	{
-		if (OverlappingActors[i]->ActorHasTag("TriggeringActor"))
-		{
-			TriggeringActor = OverlappingActors[i];
-			break;
-		}
-	}
+		// Create an empty actor to store a found one - Using actor so non-player characters can be used ie a crate that sits on a pressure plate
+		const AActor* TriggeringActor = nullptr;
 
-	if (TriggeringActor)
-	{
-		if (!bIsActivated)
+		// Iterate over all overlapping actors
+		for (int i = 0; i < OverlappingActors.Num(); ++i)
 		{
-			bIsActivated = true;
-			GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::White, TEXT("Activated"));
-			OnActivatedChange.Broadcast(true);
+			// Check whether the found actor can trigger this item
+			if (OverlappingActors[i]->ActorHasTag("TriggeringActor"))
+			{
+				TriggeringActor = OverlappingActors[i];
+				break;
+			}
 		}
-	}
-	else
-	{
-		if (bIsActivated)
+
+		if (TriggeringActor)
 		{
-			bIsActivated = false;
-			GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::White, TEXT("Deactivated"));
-			OnActivatedChange.Broadcast(false);
+			// A valid actor has been found.  Check whether this actor is inactive.
+			if (!bIsActivated)
+			{
+				// Actor is not active.  Set to active and tell actors triggered by this one it is active.
+				bIsActivated = true;
+				GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::White, TEXT("Activated"));
+				OnActivatedChange.Broadcast(true);
+			}
+		}
+		else
+		{
+			// No valid actor found.  Check whether this actor is active.
+			if (bIsActivated)
+			{
+				// Actor is active.  Deactivate it and tell actors triggered by this it is inactive.
+				bIsActivated = false;
+				GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::White, TEXT("Deactivated"));
+				OnActivatedChange.Broadcast(false);
+			}
 		}
 	}
 	
