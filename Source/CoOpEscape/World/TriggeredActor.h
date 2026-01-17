@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "TriggeredActor.generated.h"
 
+class UArrowComponent;
+
 UCLASS()
 class COOPESCAPE_API ATriggeredActor : public AActor
 {
@@ -19,8 +21,22 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Triggered Actors")
+	USceneComponent* RootComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Triggered Actors")
+	UStaticMeshComponent* MeshComp;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Triggered Actors")
+	class UTransportComponent* TransportComp;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Triggered Actors")
+	UArrowComponent* StartLoc;
+
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+	
+	
 };
