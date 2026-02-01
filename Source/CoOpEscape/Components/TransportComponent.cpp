@@ -1,9 +1,6 @@
 // Copyright 2025 DME Games
 
-
 #include "TransportComponent.h"
-
-#include "CoOpEscape/World/TriggeringActor.h"
 
 // Sets default values for this component's properties
 UTransportComponent::UTransportComponent()
@@ -13,6 +10,15 @@ UTransportComponent::UTransportComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	SetIsReplicatedByDefault(true);
+
+	MoveTime = 2.0f;
+	bArePointsSet = false;
+	bIsActivated = false;
+	bLockWhenOpen = false;
+	bCanMove = true;
+	StartPoint = FVector::Zero();
+	EndPoint = FVector::Zero();
+	
 }
 
 
@@ -21,20 +27,44 @@ void UTransportComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	for (int32 i = 0; i < TriggeringActors.Num(); ++i)
+	// Owning actor must be replicated
+	if (AActor* Owner = GetOwner())
 	{
-		TriggeringActors[i]->OnActivatedChange.AddDynamic(this, &UTransportComponent::OnTriggeringActorActivated);
+		Owner->SetReplicates(true);
+		Owner->SetReplicateMovement(true);
 	}
-	
 }
-
 
 // Called every frame
 void UTransportComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
+	if (bCanMove)
+	{
+		AActor* Owner = GetOwner();
+		if (bArePointsSet && Owner && Owner->HasAuthority())
+		{
+			FVector OwnerLoc = Owner->GetActorLocation();
+			float Speed = FVector::Distance(StartPoint, EndPoint) / MoveTime;
+
+			FVector TargetLoc = bIsActivated ? EndPoint : StartPoint;
+		
+			if (!OwnerLoc.Equals(TargetLoc))
+			{
+				FVector NewLoc = FMath::VInterpConstantTo(OwnerLoc, TargetLoc, DeltaTime, Speed);
+				Owner->SetActorLocation(NewLoc);
+			}
+			else
+			{
+				if (OwnerLoc.Equals(EndPoint) && bLockWhenOpen)
+				{
+					bCanMove = false;;
+				}
+			}
+		}
+	}
+
 }
 
 void UTransportComponent::SetPoints(FVector Point1, FVector Point2)
@@ -48,21 +78,5 @@ void UTransportComponent::SetPoints(FVector Point1, FVector Point2)
 
 void UTransportComponent::OnTriggeringActorActivated(bool ActiveState)
 {
-	if (bArePointsSet)
-	{
-		if (ActiveState)
-		{
-			NumberOfActiveTriggers = FMath::Clamp(NumberOfActiveTriggers += 1, 0, TriggeringActors.Num());
-
-			// Check if all triggers have been activated
-			if (NumberOfActiveTriggers == TriggeringActors.Num())
-			{
-		
-			}
-		}
-		else
-		{
-			NumberOfActiveTriggers = FMath::Clamp(NumberOfActiveTriggers -= 1, 0, TriggeringActors.Num());
-		}
-	}
+	bIsActivated = ActiveState;
 }

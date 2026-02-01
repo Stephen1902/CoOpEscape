@@ -6,6 +6,8 @@
 #include "Components/ActorComponent.h"
 #include "TransportComponent.generated.h"
 
+class UArrowComponent;
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class COOPESCAPE_API UTransportComponent : public UActorComponent
 {
@@ -18,42 +20,28 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Transporter Comp")
-	UArrowComponent* StartLoc;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Transporter Comp")
-	UArrowComponent* EndLoc;
-
 	// Time to move between the StartLoc and EndLoc
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Transporter Comp")
 	float MoveTime;
-	
-	// Other actors that trigger this one
+
+	// Whether the owned actor should lock in place when movement to the EndLoc is complete
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Transporter Comp")
-	TArray<class ATriggeringActor*> TriggeringActors;
-
-	// Whether this transporter comp is used by the actor it is attached to
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Transporter Comp")
-	bool bUseTransportComp;
-
-	UPROPERTY(VisibleAnywhere, Category = "Transporter Comp")
-	int32 ActivatedTriggerCount;
-
-	UPROPERTY(VisibleAnywhere, Category = "Transporter Comp")
-	bool bAllTriggersActivated;
+	bool bLockWhenOpen;
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	void SetPoints(FVector Point1, FVector Point2);
-	
+
+	UFUNCTION()
+	void OnTriggeringActorActivated(bool ActiveState);
+
 private:
 	FVector StartPoint;
 	FVector EndPoint;
 	bool bArePointsSet;
-	
-	int32 NumberOfActiveTriggers;
-	UFUNCTION()
-	void OnTriggeringActorActivated(bool ActiveState);
+	bool bIsActivated;
+	bool bCanMove;	
+
 };

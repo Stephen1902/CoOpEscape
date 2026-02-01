@@ -58,7 +58,6 @@ void AOverlappingActor::OnOverlapTimerEnded()
 			{
 				// Actor is not active.  Set to active and tell actors triggered by this one it is active.
 				bIsActivated = true;
-				GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::White, TEXT("Activated"));
 				OnActivatedChange.Broadcast(true);
 			}
 		}
@@ -69,7 +68,6 @@ void AOverlappingActor::OnOverlapTimerEnded()
 			{
 				// Actor is active.  Deactivate it and tell actors triggered by this it is inactive.
 				bIsActivated = false;
-				GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::White, TEXT("Deactivated"));
 				OnActivatedChange.Broadcast(false);
 			}
 		}

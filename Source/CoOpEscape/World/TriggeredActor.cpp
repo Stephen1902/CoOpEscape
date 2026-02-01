@@ -1,7 +1,7 @@
 // Copyright 2025 DME Games
 
-
 #include "TriggeredActor.h"
+#include "TriggeringActor.h"
 
 // Sets default values
 ATriggeredActor::ATriggeredActor()
@@ -15,7 +15,8 @@ ATriggeredActor::ATriggeredActor()
 	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh Comp"));
 	MeshComp->SetupAttachment(RootComp);
 
-	
+	NumActorsTriggered = 0;
+	bIsTriggered = false;
 }
 
 // Called when the game starts or when spawned
@@ -23,7 +24,27 @@ void ATriggeredActor::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (HasAuthority() && TriggeringActors.Num() > 0)
+	{
+		for (auto It : TriggeringActors)
+		{
+			It->OnActivatedChange.AddDynamic(this, &ATriggeredActor::OnNumActorsChanged);
+		}
+	}
+}
 
+void ATriggeredActor::OnNumActorsChanged(bool ActorIncreased)
+{
+	if (ActorIncreased)
+	{
+		NumActorsTriggered = FMath::Clamp(NumActorsTriggered += 1, 0, TriggeringActors.Num());
+		if (NumActorsTriggered == TriggeringActors.Num()) bIsTriggered = true; 
+	}
+	else
+	{
+		NumActorsTriggered = FMath::Clamp(NumActorsTriggered -= 1, 0, TriggeringActors.Num());
+		bIsTriggered = false;
+	}
 
 }
 
@@ -32,6 +53,7 @@ void ATriggeredActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	
 }
 
 
