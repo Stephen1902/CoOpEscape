@@ -8,10 +8,10 @@ AMovingTriggeredActor::AMovingTriggeredActor()
 {
 	TransportComponent = CreateDefaultSubobject<UTransportComponent>(TEXT("Transport Comp"));
 
-	StartLoc = CreateDefaultSubobject<UArrowComponent>(TEXT("Start Location"));
-	StartLoc->SetupAttachment(RootComp);
-	EndLoc = CreateDefaultSubobject<UArrowComponent>(TEXT("End Location"));
-	EndLoc->SetupAttachment(RootComp);
+	StartTransform = CreateDefaultSubobject<UArrowComponent>(TEXT("Start Location"));
+	StartTransform->SetupAttachment(RootComp);
+	EndTransform = CreateDefaultSubobject<UArrowComponent>(TEXT("End Location"));
+	EndTransform->SetupAttachment(RootComp);
 }
 
 void AMovingTriggeredActor::BeginPlay()
@@ -21,7 +21,7 @@ void AMovingTriggeredActor::BeginPlay()
 	SetReplicates(true);
 	SetReplicateMovement(true);
 
-	TransportComponent->SetPoints(StartLoc->GetComponentLocation(), EndLoc->GetComponentLocation());
+	TransportComponent->SetPoints(StartTransform->GetComponentTransform(), EndTransform->GetComponentTransform());
 }
 
 void AMovingTriggeredActor::Tick(float DeltaSeconds)

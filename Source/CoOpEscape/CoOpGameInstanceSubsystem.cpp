@@ -37,7 +37,6 @@ void UCoOpGameInstanceSubsystem::Initialize(FSubsystemCollectionBase& Collection
 	if (OnlineSubsystem)
 	{
 		SubsystemName = OnlineSubsystem->GetSubsystemName().ToString();
-		PrintString(SubsystemName);
 		SessionInterface = OnlineSubsystem->GetSessionInterface();
 		if (SessionInterface.IsValid())
 		{

@@ -23,10 +23,10 @@ protected:
 	class UTransportComponent* TransportComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Triggered Actors")
-	UArrowComponent* StartLoc;
+	UArrowComponent* StartTransform;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Triggered Actors")
-	UArrowComponent* EndLoc;
+	UArrowComponent* EndTransform;
 
 	virtual void BeginPlay() override;
 

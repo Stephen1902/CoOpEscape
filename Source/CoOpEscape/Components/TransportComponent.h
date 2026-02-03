@@ -25,6 +25,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Transporter Comp")
 	float MoveTime;
 
+
 	// Whether the owned actor should lock in place when movement to the EndLoc is complete
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Transporter Comp")
 	bool bLockWhenOpen;
@@ -32,16 +33,21 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	void SetPoints(FVector Point1, FVector Point2);
+	void SetPoints(FTransform Point1, FTransform Point2);
 
 	UFUNCTION()
 	void OnTriggeringActorActivated(bool ActiveState);
 
 private:
+	FTransform StartTransform;
+	FTransform EndTransform;
 	FVector StartPoint;
 	FVector EndPoint;
+	FRotator StartRot;
+	FRotator EndRot;
 	bool bArePointsSet;
 	bool bIsActivated;
 	bool bCanMove;	
+	bool bIsRotatingOnly;
 
 };
