@@ -9,7 +9,7 @@
 class UArrowComponent;
 
 /**
- * 
+ * Base class for all actors that will need to be moved, rotated or scaled when triggered
  */
 UCLASS()
 class COOPESCAPE_API AMovingTriggeredActor : public ATriggeredActor
