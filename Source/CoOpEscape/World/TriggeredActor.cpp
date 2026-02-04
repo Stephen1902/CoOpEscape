@@ -38,12 +38,14 @@ void ATriggeredActor::OnNumActorsChanged(bool ActorIncreased)
 	if (ActorIncreased)
 	{
 		NumActorsTriggered = FMath::Clamp(NumActorsTriggered += 1, 0, TriggeringActors.Num());
-		if (NumActorsTriggered == TriggeringActors.Num()) bIsTriggered = true; 
+		if (NumActorsTriggered == TriggeringActors.Num()) bIsTriggered = true;
+		OnIsTriggeredTrue();
 	}
 	else
 	{
 		NumActorsTriggered = FMath::Clamp(NumActorsTriggered -= 1, 0, TriggeringActors.Num());
 		bIsTriggered = false;
+		OnIsTriggeredFalse();
 	}
 
 }

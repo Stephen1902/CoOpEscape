@@ -33,6 +33,12 @@ protected:
 
 	UFUNCTION()
 	virtual void OnNumActorsChanged(bool ActorIncreased);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnIsTriggeredTrue();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnIsTriggeredFalse();
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
