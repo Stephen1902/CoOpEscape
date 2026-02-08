@@ -66,7 +66,6 @@ void ACollectableActor::Tick(float DeltaTime)
 	{
 		MeshComp->AddRelativeRotation(FRotator(0.f, RotationSpeed, 0.f));
 	}
-
 }
 
 void ACollectableActor::OnRepIsCollected()
@@ -94,7 +93,7 @@ void ACollectableActor::OnCapsuleOverlap(UPrimitiveComponent* OverlappedComponen
 	{
 		bIsCollected = true;
 		// ReplicatedUsing is not called automatically in c++.  Call it
-		OnRepIsCollected();
+		if (HasAuthority())	OnRepIsCollected();
 	}
 }
 

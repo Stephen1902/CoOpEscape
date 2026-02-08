@@ -53,7 +53,6 @@ void ATriggeredActor::OnNumActorsChanged(bool ActorIncreased)
 		bIsTriggered = false;
 		OnIsTriggeredFalse();
 	}
-
 }
 
 // Called every frame
