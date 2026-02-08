@@ -9,11 +9,15 @@ ATriggeredActor::ATriggeredActor()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	bReplicates = true;
+
 	RootComp = CreateDefaultSubobject<USceneComponent>(TEXT("Root Comp"));
 	SetRootComponent(RootComp);
+	RootComp->SetIsReplicated(true);
 
 	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh Comp"));
 	MeshComp->SetupAttachment(RootComp);
+	MeshComp->SetIsReplicated(true);
 
 	NumActorsTriggered = 0;
 	bIsTriggered = false;
@@ -23,6 +27,8 @@ ATriggeredActor::ATriggeredActor()
 void ATriggeredActor::BeginPlay()
 {
 	Super::BeginPlay();
+
+	SetReplicateMovement(true);
 
 	if (HasAuthority() && TriggeringActors.Num() > 0)
 	{
