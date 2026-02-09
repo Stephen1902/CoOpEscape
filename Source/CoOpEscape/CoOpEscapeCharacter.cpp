@@ -1,11 +1,9 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "CoOpEscapeCharacter.h"
+#include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Components/InputComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "GameFramework/Controller.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 
@@ -15,41 +13,22 @@
 ACoOpEscapeCharacter::ACoOpEscapeCharacter()
 {
 	// Set size for collision capsule
-	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
+	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
 		
-	// Don't rotate when the controller rotates. Let that just affect the camera.
-	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = true;
-	bUseControllerRotationRoll = false;
+	// Create a CameraComponent	
+	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
+	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
+	FirstPersonCameraComponent->SetRelativeLocation(FVector(-10.f, 0.f, 60.f)); // Position the camera
+	FirstPersonCameraComponent->bUsePawnControlRotation = true;
 
-	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = false; // Character moves in the direction of input...	
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
-
-	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
-	// instead of recompiling to adjust them
-	GetCharacterMovement()->JumpZVelocity = 700.f;
-	GetCharacterMovement()->AirControl = 0.35f;
-	GetCharacterMovement()->MaxWalkSpeed = 500.f;
-	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
-	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
-	
-	// Create the first person arms and set them so only the owning player sees them
-	FPArms = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FP Arms"));
-	FPArms->SetupAttachment(RootComponent);
-	FPArms->SetOnlyOwnerSee(true);
-	FPArms->CastShadow = false;
-	
-	// Add a camera to be used by the first person arm
-	FPCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FP Camera"));
-	FPCamera->SetupAttachment(FPArms);
-	FPCamera->bUsePawnControlRotation = true;
-	
-	// Hide the third person mesh from the owning player
-	GetMesh()->SetOwnerNoSee(true);
-	
-	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
-	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
+	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh1P"));
+	Mesh1P->SetOnlyOwnerSee(true);
+	Mesh1P->SetupAttachment(FirstPersonCameraComponent);
+	Mesh1P->bCastDynamicShadow = false;
+	Mesh1P->CastShadow = false;
+	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
+	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 }
 
 void ACoOpEscapeCharacter::BeginPlay()
@@ -64,20 +43,16 @@ void ACoOpEscapeCharacter::BeginPlay()
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
-
-		PlayerController->SetShowMouseCursor(false);
-		PlayerController->SetInputMode(FInputModeGameOnly());
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////
-// Input
+//////////////////////////////////////////////////////////////////////////// Input
 
 void ACoOpEscapeCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	// Set up action bindings
-	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
-		
+	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
+	{
 		//Jumping
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
@@ -87,10 +62,9 @@ void ACoOpEscapeCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ACoOpEscapeCharacter::Look);
-
 	}
-
 }
+
 
 void ACoOpEscapeCharacter::Move(const FInputActionValue& Value)
 {
@@ -99,19 +73,9 @@ void ACoOpEscapeCharacter::Move(const FInputActionValue& Value)
 
 	if (Controller != nullptr)
 	{
-		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-		// get forward vector
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	
-		// get right vector 
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
 		// add movement 
-		AddMovementInput(ForwardDirection, MovementVector.Y);
-		AddMovementInput(RightDirection, MovementVector.X);
+		AddMovementInput(GetActorForwardVector(), MovementVector.Y);
+		AddMovementInput(GetActorRightVector(), MovementVector.X);
 	}
 }
 
@@ -127,7 +91,3 @@ void ACoOpEscapeCharacter::Look(const FInputActionValue& Value)
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
 }
-
-
-
-
