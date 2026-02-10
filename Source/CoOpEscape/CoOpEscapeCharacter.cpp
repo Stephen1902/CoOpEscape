@@ -6,6 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Components/InteractionComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ACoOpEscapeCharacter
@@ -29,6 +30,8 @@ ACoOpEscapeCharacter::ACoOpEscapeCharacter()
 	Mesh1P->CastShadow = false;
 	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
+
+	InteractionComp = CreateDefaultSubobject<UInteractionComponent>(TEXT("Interaction Comp"));
 }
 
 void ACoOpEscapeCharacter::BeginPlay()

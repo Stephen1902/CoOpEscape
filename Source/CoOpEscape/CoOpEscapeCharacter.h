@@ -39,7 +39,8 @@ class ACoOpEscapeCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	class UInputAction* MoveAction;
 
-	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction Compomnent", meta=(AllowPrivateAccess = "true"))
+	class UInteractionComponent* InteractionComp;
 public:
 	ACoOpEscapeCharacter();
 
@@ -52,14 +53,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
 
+	
 protected:
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-
-protected:
+	
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	// End of APawn interface
