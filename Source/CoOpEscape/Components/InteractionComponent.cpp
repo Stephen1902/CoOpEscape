@@ -13,6 +13,14 @@ UInteractionComponent::UInteractionComponent()
 	SetIsReplicated(true);
 }
 
+void UInteractionComponent::InteractPressed()
+{
+	if (ActorBeenHit)
+	{
+		Execute_OnInteractBegin(ActorBeenHit);
+	}
+}
+
 
 // Called when the game starts
 void UInteractionComponent::BeginPlay()

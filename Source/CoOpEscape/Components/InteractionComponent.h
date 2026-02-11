@@ -16,16 +16,20 @@ public:
 	// Sets default values for this component's properties
 	UInteractionComponent();
 
+	void InteractPressed();
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	// Which character in the world owns this component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction Comp")
 	class ACoOpEscapeCharacter* OwningCharacter = nullptr;
 
+	// Distance the line trace extends out of the owning character
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction Comp")
 	float TraceRange = 200.f;
 
+	// How often a check for an interactive actor should occur
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction Comp")
 	float TimerFrequency = 0.1f;
 
