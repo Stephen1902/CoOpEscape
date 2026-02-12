@@ -57,6 +57,7 @@ void UInteractionComponent::InteractTimerExpired()
 	{
 		// Check if what has been hit is different to the current actor hit
 		if (HitResult.GetActor()->Implements<UInteractInterface>() && HitResult.GetActor() != ActorBeenHit)
+		//if (HitResult.GetActor()->GetClass()->ImplementsInterface(UInteractInterface::StaticClass()) && HitResult.GetActor() != ActorBeenHit)
 		{
 			if (ActorBeenHit != nullptr)
 			{

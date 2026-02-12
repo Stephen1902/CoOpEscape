@@ -25,28 +25,3 @@ void AInteractiveActor::BeginPlay()
 
 	SetReplicateMovement(true);
 }
-
-AActor* AInteractiveActor::OnOverlapBegin_Implementation(AActor* OwnerIn)
-{
-	IInteractInterface::OnInteractBegin_Implementation();
-	SetOwner(OwnerIn);
-	if (GetOwner())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Owner is: %s"), *GetOwner()->GetName());
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Set Owner was called but failed to set one.  OwnerIn was %s"), *OwnerIn->GetName());
-	}
-	return this;
-}
-
-void AInteractiveActor::OnOverlapEnd_Implementation()
-{
-	IInteractInterface::OnOverlapEnd_Implementation();
-}
-
-void AInteractiveActor::OnInteractBegin_Implementation()
-{
-	IInteractInterface::OnInteractBegin_Implementation();
-}

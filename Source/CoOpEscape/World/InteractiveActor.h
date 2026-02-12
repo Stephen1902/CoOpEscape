@@ -25,9 +25,5 @@ protected:
 	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
-	// Interface Functions
-	virtual AActor* OnOverlapBegin_Implementation(AActor* OwnerIn) override;
-	virtual void OnOverlapEnd_Implementation() override;
-	virtual void OnInteractBegin_Implementation() override;
+
 };
