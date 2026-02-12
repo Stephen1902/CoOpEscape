@@ -1,7 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "CoOpEscapeCharacter.h"
-#include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "EnhancedInputComponent.h"
@@ -31,7 +30,8 @@ ACoOpEscapeCharacter::ACoOpEscapeCharacter()
 	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 
-	InteractionComp = CreateDefaultSubobject<UInteractionComponent>(TEXT("Interaction Comp"));
+	InteractionComponent = CreateDefaultSubobject<UInteractionComponent>(TEXT("Interaction Comp"));
+	
 }
 
 void ACoOpEscapeCharacter::BeginPlay()
@@ -65,6 +65,9 @@ void ACoOpEscapeCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ACoOpEscapeCharacter::Look);
+
+		//Interact
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ACoOpEscapeCharacter::Interact);
 	}
 }
 
@@ -92,5 +95,13 @@ void ACoOpEscapeCharacter::Look(const FInputActionValue& Value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void ACoOpEscapeCharacter::Interact(const FInputActionValue& Value)
+{
+	if (InteractionComponent)
+	{
+		InteractionComponent->InteractPressed();
 	}
 }

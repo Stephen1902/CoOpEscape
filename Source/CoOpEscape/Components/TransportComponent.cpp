@@ -87,7 +87,6 @@ void UTransportComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 			}
 		}
 	}
-
 }
 
 void UTransportComponent::SetPoints(FTransform Point1, FTransform Point2)

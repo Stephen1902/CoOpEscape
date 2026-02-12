@@ -10,17 +10,18 @@ UInteractionComponent::UInteractionComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = false;
 
-	SetIsReplicated(true);
+	SetIsReplicatedByDefault(true);
 }
 
 void UInteractionComponent::InteractPressed()
 {
+	UE_LOG(LogTemp, Warning, TEXT("ActorBeenHit is %s"), ActorBeenHit != nullptr ? *ActorBeenHit->GetName() : TEXT("invalid"));
 	if (ActorBeenHit)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Actor Been Hit is valid"));
 		Execute_OnInteractBegin(ActorBeenHit);
 	}
 }
-
 
 // Called when the game starts
 void UInteractionComponent::BeginPlay()
@@ -61,8 +62,11 @@ void UInteractionComponent::InteractTimerExpired()
 			{
 				Execute_OnOverlapEnd(ActorBeenHit);
 			}
+
+			ActorBeenHit = HitResult.GetActor();
+			Execute_OnOverlapBegin(ActorBeenHit, OwningCharacter);
+			//ActorBeenHit = HitResult.GetActor();
 			
-			ActorBeenHit = Execute_OnOverlapBegin(HitResult.GetActor());
 		}
 	}
 	else
@@ -74,5 +78,6 @@ void UInteractionComponent::InteractTimerExpired()
 			ActorBeenHit = nullptr;
 		}
 	}
-}
 
+	//UE_LOG(LogTemp, Warning, TEXT("ActorBeenHit is %s"), ActorBeenHit != nullptr ? *ActorBeenHit->GetName() : TEXT("invalid"));
+}
