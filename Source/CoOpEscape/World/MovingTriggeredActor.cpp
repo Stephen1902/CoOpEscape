@@ -21,14 +21,6 @@ void AMovingTriggeredActor::BeginPlay()
 	TransportComponent->SetPoints(StartTransform->GetComponentTransform(), EndTransform->GetComponentTransform());
 }
 
-void AMovingTriggeredActor::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-
-	
-
-}
-
 void AMovingTriggeredActor::OnNumActorsChanged(bool ActorIncreased)
 {
 	Super::OnNumActorsChanged(ActorIncreased);

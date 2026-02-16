@@ -6,6 +6,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Components/InteractionComponent.h"
+#include "Components/InventoryComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ACoOpEscapeCharacter
@@ -31,7 +32,9 @@ ACoOpEscapeCharacter::ACoOpEscapeCharacter()
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 
 	InteractionComponent = CreateDefaultSubobject<UInteractionComponent>(TEXT("Interaction Comp"));
-	
+	InteractionComponent->SetIsReplicated(true);
+	InventoryComp = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory Comp"));
+	InventoryComp->SetIsReplicated(true);
 }
 
 void ACoOpEscapeCharacter::BeginPlay()

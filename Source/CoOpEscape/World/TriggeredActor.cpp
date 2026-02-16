@@ -7,7 +7,7 @@
 ATriggeredActor::ATriggeredActor()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	bReplicates = true;
 
@@ -21,6 +21,7 @@ ATriggeredActor::ATriggeredActor()
 
 	NumActorsTriggered = 0;
 	bIsTriggered = false;
+	bAlternateTriggers = false;
 }
 
 // Called when the game starts or when spawned
@@ -44,23 +45,16 @@ void ATriggeredActor::OnNumActorsChanged(bool ActorIncreased)
 	if (ActorIncreased)
 	{
 		NumActorsTriggered = FMath::Clamp(NumActorsTriggered += 1, 0, TriggeringActors.Num());
-		if (NumActorsTriggered == TriggeringActors.Num()) bIsTriggered = true;
+		if (NumActorsTriggered == TriggeringActors.Num() || (bAlternateTriggers && NumActorsTriggered > 0)) bIsTriggered = true;
 		OnIsTriggeredTrue();
 	}
 	else
 	{
 		NumActorsTriggered = FMath::Clamp(NumActorsTriggered -= 1, 0, TriggeringActors.Num());
-		bIsTriggered = false;
-		OnIsTriggeredFalse();
+		if (NumActorsTriggered == 0  || (!bAlternateTriggers && NumActorsTriggered < TriggeringActors.Num()))
+		{
+			bIsTriggered = false;
+			OnIsTriggeredFalse();
+		}
 	}
 }
-
-// Called every frame
-void ATriggeredActor::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	
-}
-
-

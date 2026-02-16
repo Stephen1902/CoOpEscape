@@ -9,8 +9,7 @@ UInteractionComponent::UInteractionComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = false;
-
-	SetIsReplicatedByDefault(true);
+	
 }
 
 void UInteractionComponent::InteractPressed()
@@ -61,13 +60,12 @@ void UInteractionComponent::InteractTimerExpired()
 		{
 			if (ActorBeenHit != nullptr)
 			{
+				ActorBeenHit->SetOwner(nullptr);
 				Execute_OnOverlapEnd(ActorBeenHit);
 			}
 
-			ActorBeenHit = HitResult.GetActor();
-			Execute_OnOverlapBegin(ActorBeenHit, OwningCharacter);
-			//ActorBeenHit = HitResult.GetActor();
-			
+			ActorBeenHit = Execute_OnOverlapBegin(HitResult.GetActor(), OwningCharacter);
+			ActorBeenHit->SetOwner(OwningCharacter);
 		}
 	}
 	else
@@ -75,6 +73,7 @@ void UInteractionComponent::InteractTimerExpired()
 		// Nothing has been hit.  If there's anything previously hit, clear it
 		if (ActorBeenHit != nullptr)
 		{
+			ActorBeenHit->SetOwner(nullptr);
 			Execute_OnOverlapEnd(ActorBeenHit);
 			ActorBeenHit = nullptr;
 		}

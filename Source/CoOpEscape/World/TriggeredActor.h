@@ -25,13 +25,17 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Triggered Actors")
 	UStaticMeshComponent* MeshComp;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Triggered Actors")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Triggered Actors")
 	TArray<class ATriggeringActor*> TriggeringActors;
 
+	/** Used when there are 2 triggers but can be used alternately */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Triggered Actors", meta=(EditCondition="TriggeringActors.Num()==2"))
+	bool bAlternateTriggers;
+	
 	int32 NumActorsTriggered;
 	bool bIsTriggered;
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable, Category = "Triggered Actors")
 	virtual void OnNumActorsChanged(bool ActorIncreased);
 
 	UFUNCTION(BlueprintImplementableEvent)
@@ -39,9 +43,5 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnIsTriggeredFalse();
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 	
 };
