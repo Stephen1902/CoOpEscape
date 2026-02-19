@@ -16,17 +16,21 @@ public:
 	// Sets default values for this component's properties
 	UInventoryComponent();
 
+	UFUNCTION(BlueprintCallable, Category = "Inventory Functions")
+	void AddToInventory(AActor* ActorIn);
+
+	AActor* GetCollectableActor() const { return CollectableActor; }
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
 	UPROPERTY(ReplicatedUsing=OnRep_CollectedActor)
-	TSubclassOf<AActor> CollectableActor;
+	AActor* CollectableActor;
 	
 	UFUNCTION()
 	void OnRep_CollectedActor();
 
 private:
 	UPROPERTY()
-	class ACoOpEscapeCharacter* OwningCharacter;
+	class ACoOpEscapeCharacter* OwningCharacter = nullptr;
 };

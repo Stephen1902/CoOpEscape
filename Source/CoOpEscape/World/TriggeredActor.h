@@ -29,7 +29,7 @@ protected:
 	TArray<class ATriggeringActor*> TriggeringActors;
 
 	/** Used when there are 2 triggers but can be used alternately */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Triggered Actors", meta=(EditCondition="TriggeringActors.Num()==2"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Triggered Actors")
 	bool bAlternateTriggers;
 	
 	int32 NumActorsTriggered;

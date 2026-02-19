@@ -7,6 +7,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Components/InteractionComponent.h"
 #include "Components/InventoryComponent.h"
+#include "World/InteractiveActor.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ACoOpEscapeCharacter
@@ -71,9 +72,27 @@ void ACoOpEscapeCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 
 		//Interact
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ACoOpEscapeCharacter::Interact);
+
+		//Test
+		EnhancedInputComponent->BindAction(TestAction, ETriggerEvent::Started, this, &ACoOpEscapeCharacter::Test);
 	}
 }
 
+void ACoOpEscapeCharacter::InventoryItemChanged(AActor* ActorIn)
+{
+	if (ActorIn && InventoryItems)
+	{
+		
+		//if (FInteractiveInfo* Row = InventoryItems->FindRow<FInteractiveInfo>(ActorIn, ""))
+		{
+			
+		}
+	}
+	else
+	{
+		
+	}
+}
 
 void ACoOpEscapeCharacter::Move(const FInputActionValue& Value)
 {
@@ -107,4 +126,17 @@ void ACoOpEscapeCharacter::Interact(const FInputActionValue& Value)
 	{
 		InteractionComponent->InteractPressed();
 	}
+}
+
+void ACoOpEscapeCharacter::Test(const FInputActionValue& Value)
+{
+	if (GetInventoryComp()->GetCollectableActor())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("%s has %s as a CollectableActor"), *GetName(), *GetInventoryComp()->GetCollectableActor()->GetName());	
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Inventory Comp does not have a valid actor"));
+	}
+	
 }

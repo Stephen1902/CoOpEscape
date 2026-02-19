@@ -47,7 +47,9 @@ class ACoOpEscapeCharacter : public ACharacter
 	/** Interact Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* InteractAction;
-	
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	UInputAction* TestAction;
 public:
 	ACoOpEscapeCharacter();
 
@@ -60,8 +62,10 @@ protected:
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 
-	/** Called for interact input */
+	/** Called for test input */
 	void Interact(const FInputActionValue& Value);
+
+	void Test(const FInputActionValue& Value);
 	
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
@@ -71,15 +75,22 @@ protected:
 	class UInteractionComponent* InteractionComponent;
 
 	/** Inventory Component */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory Compomnent")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory Component")
 	class UInventoryComponent* InventoryComp;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory Component")
+	class UDataTable* InventoryItems;
 public:
 	/** Returns Mesh1P subobject **/
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
+	/** Returns InventoryComponent **/
+	UFUNCTION(BlueprintCallable, Category = "Character Functions")
+	UInventoryComponent* GetInventoryComp() const { return InventoryComp; }
 
+	void InventoryItemChanged(AActor* ActorIn);
+	
 };
 

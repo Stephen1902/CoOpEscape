@@ -16,6 +16,7 @@ AInteractiveActor::AInteractiveActor()
 	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh Comp"));
 	MeshComp->SetupAttachment(RootComp);
 	MeshComp->SetIsReplicated(true);
+	MeshComp->CustomDepthStencilValue = 1;
 }
 
 // Called when the game starts or when spawned
