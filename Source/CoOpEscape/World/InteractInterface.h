@@ -30,5 +30,6 @@ public:
 	void OnInteractBegin();
 	UFUNCTION(BlueprintNativeEvent)
 	void GetItemInfo(FText& ItemNameOut, FText& ItemDescOut); 
-	
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	FName GetName(class UDataTable*& DataTableOut) const;
 };

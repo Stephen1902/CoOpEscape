@@ -1,8 +1,6 @@
 // Copyright 2025 DME Games
 
-
 #include "InventoryComponent.h"
-
 #include "CoOpEscape/CoOpEscapeCharacter.h"
 #include "Net/UnrealNetwork.h"
 

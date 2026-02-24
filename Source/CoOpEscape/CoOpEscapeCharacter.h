@@ -90,7 +90,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Character Functions")
 	UInventoryComponent* GetInventoryComp() const { return InventoryComp; }
 
-	void InventoryItemChanged(AActor* ActorIn);
+	void InventoryItemChanged(const AActor* ActorIn);
 	
 };
 

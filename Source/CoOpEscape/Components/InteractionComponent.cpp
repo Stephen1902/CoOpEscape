@@ -34,7 +34,7 @@ void UInteractionComponent::BeginPlay()
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("%s has no owning character."), *GetName());
+		UE_LOG(LogTemp, Warning, TEXT("There is an interation component with no owning character."));
 	}	
 }
 

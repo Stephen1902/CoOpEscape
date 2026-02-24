@@ -17,6 +17,13 @@ AInteractiveActor::AInteractiveActor()
 	MeshComp->SetupAttachment(RootComp);
 	MeshComp->SetIsReplicated(true);
 	MeshComp->CustomDepthStencilValue = 1;
+
+	static ConstructorHelpers::FObjectFinder<UDataTable> DT(TEXT("/Game/Framework/DT_InteractiveInfo"));
+	if (DT.Succeeded())
+	{
+		InfoDataTable = DT.Object;
+	}
+	
 }
 
 // Called when the game starts or when spawned
@@ -25,4 +32,18 @@ void AInteractiveActor::BeginPlay()
 	Super::BeginPlay();
 
 	SetReplicateMovement(true);
+
+	if (InfoDataTable)
+	{
+		if (FInteractiveInfo* Row = InfoDataTable->FindRow<FInteractiveInfo>(Name, ""))
+		{
+			MeshComp->SetStaticMesh(Row->DisplayMesh);
+		}
+	}
+}
+
+FName AInteractiveActor::GetName_Implementation(class UDataTable*& DataTableOut) const
+{
+	DataTableOut = InfoDataTable;
+	return Name;
 }

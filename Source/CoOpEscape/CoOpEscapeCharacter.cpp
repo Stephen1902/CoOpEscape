@@ -7,6 +7,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Components/InteractionComponent.h"
 #include "Components/InventoryComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "World/InteractiveActor.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -78,19 +79,41 @@ void ACoOpEscapeCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 	}
 }
 
-void ACoOpEscapeCharacter::InventoryItemChanged(AActor* ActorIn)
+void ACoOpEscapeCharacter::InventoryItemChanged(const AActor* ActorIn)
 {
-	if (ActorIn && InventoryItems)
+	if (ActorIn)
 	{
-		
-		//if (FInteractiveInfo* Row = InventoryItems->FindRow<FInteractiveInfo>(ActorIn, ""))
+		if (UKismetSystemLibrary::DoesImplementInterface(ActorIn, UInteractInterface::StaticClass()))
 		{
-			
+			UDataTable* DT;
+
+			FName ActorName = IInteractInterface::Execute_GetName(ActorIn, DT);
+
+			if (!ActorName.IsNone() && DT)
+			{
+				if (FInteractiveInfo* Row = DT->FindRow<FInteractiveInfo>(ActorName, ""))
+				{
+					UE_LOG(LogTemp, Warning, TEXT("InventoryItemChanged called.  ActorIn and ActorName are both valid."));	
+				}
+			}
+			else
+			{
+				if (ActorName.IsNone())
+				{
+					UE_LOG(LogTemp, Warning, TEXT("InventoryItemChanged called.  ActorIn is valid but ActorName is not."));	
+				}
+
+				if (!DT)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("InventoryItemChanged called.  ActorIn is valid but DT is not."));
+				}
+				
+			}
 		}
 	}
 	else
 	{
-		
+		UE_LOG(LogTemp, Warning, TEXT("InventoryItemChanged called.  ActorIn is not valid."));
 	}
 }
 
