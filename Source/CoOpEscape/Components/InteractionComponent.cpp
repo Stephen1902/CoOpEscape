@@ -2,6 +2,7 @@
 
 #include "InteractionComponent.h"
 #include "CoOpEscape/CoOpEscapeCharacter.h"
+#include "CoOpEscape/NewCharacter.h"
 
 // Sets default values for this component's properties
 UInteractionComponent::UInteractionComponent()
@@ -9,7 +10,6 @@ UInteractionComponent::UInteractionComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = false;
-	
 }
 
 void UInteractionComponent::InteractPressed()
@@ -27,7 +27,7 @@ void UInteractionComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OwningCharacter = Cast<ACoOpEscapeCharacter>(GetOwner());
+	OwningCharacter = Cast<ANewCharacter>(GetOwner());
 	if (OwningCharacter)
 	{
 		GetWorld()->GetTimerManager().SetTimer(InteractiveTimer, this, &UInteractionComponent::InteractTimerExpired, TimerFrequency, true, TimerFrequency);
@@ -63,6 +63,7 @@ void UInteractionComponent::InteractTimerExpired()
 				ActorBeenHit->SetOwner(nullptr);
 				Execute_OnOverlapEnd(ActorBeenHit);
 			}
+			UE_LOG(LogTemp, Warning, TEXT("Interaction Component has hit %s"), *HitResult.GetActor()->GetName());
 
 			ActorBeenHit = Execute_OnOverlapBegin(HitResult.GetActor(), OwningCharacter);
 			ActorBeenHit->SetOwner(OwningCharacter);

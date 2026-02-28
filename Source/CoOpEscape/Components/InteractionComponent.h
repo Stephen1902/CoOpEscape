@@ -23,8 +23,10 @@ protected:
 
 	// Which character in the world owns this component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction Comp")
-	class ACoOpEscapeCharacter* OwningCharacter = nullptr;
-
+	class ANewCharacter* OwningCharacter = nullptr;
+	//class ACoOpEscapeCharacter* OwningCharacter = nullptr;
+	
+	
 	// Distance the line trace extends out of the owning character
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction Comp")
 	float TraceRange = 200.f;

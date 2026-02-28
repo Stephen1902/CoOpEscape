@@ -1,11 +1,11 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright 2025 DME Games
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
-#include "CoOpEscapeCharacter.generated.h"
+#include "NewCharacter.generated.h"
 
 class UInputComponent;
 class USkeletalMeshComponent;
@@ -15,8 +15,8 @@ class UAnimMontage;
 class USoundBase;
 class UInputAction;
 
-UCLASS(config=Game)
-class ACoOpEscapeCharacter : public ACharacter
+UCLASS()
+class COOPESCAPE_API ANewCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
@@ -51,11 +51,15 @@ class ACoOpEscapeCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* TestAction;
 public:
-	ACoOpEscapeCharacter();
+	// Sets default values for this character's properties
+	ANewCharacter();
 
+	UFUNCTION(Client, Reliable)
+	void InventoryItemChanged(const AActor* ActorIn);
 protected:
-	virtual void BeginPlay();
-
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+	
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
@@ -88,31 +92,8 @@ protected:
 	UPlayerWidget* PlayerWidgetRef;
 
 	virtual void Tick(float DeltaSeconds) override;
-public:
-	/** Returns Mesh1P subobject **/
-	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
-	/** Returns FirstPersonCameraComponent subobject **/
-	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
 	/** Returns InventoryComponent **/
 	UFUNCTION(BlueprintCallable, Category = "Character Functions")
 	UInventoryComponent* GetInventoryComp() const { return InventoryComp; }
-
-	void InventoryItemChanged(const AActor* ActorIn);
-
-	UFUNCTION(Server, Reliable)
-	void Server_InventoryItemChanged(const AActor* ActorIn);
-
-	UFUNCTION(BlueprintCallable)
-	void SetPlayerWidgetRef(class UPlayerWidget* WidgetIn);
-private:
-
-	UFUNCTION(Server, Unreliable)
-	void Server_SetPlayerWidgetRef(APlayerController* ControllerIn);
-
-	UFUNCTION(Client, Unreliable)
-	void Client_SetPlayerWidgetRef(APlayerController* ControllerIn);
-	
-	
 };
-

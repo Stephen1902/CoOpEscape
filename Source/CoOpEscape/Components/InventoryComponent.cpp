@@ -2,6 +2,7 @@
 
 #include "InventoryComponent.h"
 #include "CoOpEscape/CoOpEscapeCharacter.h"
+#include "CoOpEscape/NewCharacter.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values for this component's properties
@@ -14,12 +15,18 @@ UInventoryComponent::UInventoryComponent()
 
 void UInventoryComponent::AddToInventory(AActor* InteractiveActorIn)
 {
+	OwningCharacter = Cast<ANewCharacter>(GetOwner());
+	UE_LOG(LogTemp, Warning, TEXT("Add To Inventory"));
 	CollectableActor = InteractiveActorIn;
 
 	// OnRep doesn't get called automatically on the server.  Call it.
 	if (OwningCharacter && OwningCharacter->HasAuthority())
 	{
 		OnRep_CollectedActor();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No owning character or authortiy"));
 	}
 }
 
@@ -28,11 +35,12 @@ void UInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OwningCharacter = Cast<ACoOpEscapeCharacter>(GetOwner());
+	//OwningCharacter = Cast<ANewCharacter>(GetOwner());
 }
 
 void UInventoryComponent::OnRep_CollectedActor()
 {
+	UE_LOG(LogTemp, Warning, TEXT("OnRep called") );
 	if (OwningCharacter)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s now has CollectedActor %s"), *OwningCharacter->GetName(), *CollectableActor->GetName());

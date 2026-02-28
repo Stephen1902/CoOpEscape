@@ -18,12 +18,14 @@ AInteractiveActor::AInteractiveActor()
 	MeshComp->SetIsReplicated(true);
 	MeshComp->CustomDepthStencilValue = 1;
 
-	static ConstructorHelpers::FObjectFinder<UDataTable> DT(TEXT("/Game/Framework/DT_InteractiveInfo"));
+	bHighlightOnOverlap = true;
+/*
+	static ConstructorHelpers::FObjectFinder<UDataTable> DT (TEXT("/Game/Framework/DT_InteractiveInfo"));
 	if (DT.Succeeded())
 	{
 		InfoDataTable = DT.Object;
 	}
-	
+*/
 }
 
 // Called when the game starts or when spawned
@@ -46,4 +48,38 @@ FName AInteractiveActor::GetName_Implementation(class UDataTable*& DataTableOut)
 {
 	DataTableOut = InfoDataTable;
 	return Name;
+}
+
+AActor* AInteractiveActor::OnOverlapBegin_Implementation(AActor* OwnerIn)
+{
+	UE_LOG(LogTemp, Warning, TEXT("OnOverlapBegin called in C++"))
+	//IInteractInterface::OnOverlapBegin_Implementation(OwnerIn);
+	
+	if (OwnerIn)
+	{
+		SetOwner(OwnerIn);
+	}
+
+	if (bHighlightOnOverlap)
+	{
+		MeshComp->SetRenderCustomDepth(true);
+	}
+	
+	return this;
+}
+
+void AInteractiveActor::OnOverlapEnd_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("OnOverlapEnd called in C++"))
+	IInteractInterface::OnOverlapEnd_Implementation();
+	
+	if (bHighlightOnOverlap)
+	{
+		MeshComp->SetRenderCustomDepth(false);
+	}
+}
+
+void AInteractiveActor::OnInteractBegin_Implementation()
+{
+	IInteractInterface::OnInteractBegin_Implementation();
 }

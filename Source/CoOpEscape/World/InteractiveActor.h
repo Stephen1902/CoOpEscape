@@ -53,15 +53,21 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interactive Actor")
 	UStaticMeshComponent* MeshComp;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interactive Actor")
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Interactive Actor")
 	FName Name;
+
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Interactive Actor")
+	bool bHighlightOnOverlap;
 	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-private:
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interactive Actor")
 	UDataTable* InfoDataTable;
 
+private:
 	virtual FName GetName_Implementation(UDataTable*& DataTableOut) const override;
+	virtual AActor* OnOverlapBegin_Implementation(AActor* OwnerIn) override;
+	virtual void OnOverlapEnd_Implementation() override;
+	virtual void OnInteractBegin_Implementation() override;
 };

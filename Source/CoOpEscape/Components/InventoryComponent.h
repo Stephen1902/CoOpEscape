@@ -32,5 +32,6 @@ protected:
 
 private:
 	UPROPERTY()
-	class ACoOpEscapeCharacter* OwningCharacter = nullptr;
+	class ANewCharacter* OwningCharacter = nullptr;
+	//class ACoOpEscapeCharacter* OwningCharacter = nullptr;
 };
