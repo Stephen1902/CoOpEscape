@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "InventoryComponent.generated.h"
 
+class ACoOpEscapeCharacter;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class COOPESCAPE_API UInventoryComponent : public UActorComponent
@@ -15,6 +16,8 @@ class COOPESCAPE_API UInventoryComponent : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UInventoryComponent();
+
+	void SetOwningCharacter(ACoOpEscapeCharacter* CharacterIn);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory Functions")
 	void AddToInventory(AActor* ActorIn);
@@ -28,10 +31,10 @@ protected:
 	AActor* CollectableActor;
 	
 	UFUNCTION()
-	void OnRep_CollectedActor();
+	void OnRep_CollectedActor() const;
 
 private:
 	UPROPERTY()
-	class ANewCharacter* OwningCharacter = nullptr;
-	//class ACoOpEscapeCharacter* OwningCharacter = nullptr;
+	ACoOpEscapeCharacter* OwningCharacter = nullptr;
+	
 };

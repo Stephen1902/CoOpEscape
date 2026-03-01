@@ -10,7 +10,6 @@
 #include "Components/InteractionComponent.h"
 #include "Components/InventoryComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "Net/UnrealNetwork.h"
 #include "World/InteractiveActor.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -67,6 +66,16 @@ void ACoOpEscapeCharacter::BeginPlay()
 		//SetPlayerWidgetRef(PlayerController);
 	}
 
+	if (InteractionComponent)
+	{
+		InteractionComponent->SetOwningCharacter(this);
+	}
+
+	if (InventoryComp)
+	{
+		InventoryComp->SetOwningCharacter(this);
+	}
+
 }
 
 //////////////////////////////////////////////////////////////////////////// Input
@@ -111,44 +120,26 @@ void ACoOpEscapeCharacter::Tick(float DeltaSeconds)
 	
 }
 
-void ACoOpEscapeCharacter::InventoryItemChanged(const AActor* ActorIn)
+void ACoOpEscapeCharacter::InventoryItemChanged_Implementation(const AActor* ActorIn)
 {
-	if (!PlayerWidgetRef)
+	if (ActorIn)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("PlayerWidgetRef is not valid."));
-	}
-	else
-	{
-		/*
-		if (!HasAuthority())
+		if (UKismetSystemLibrary::DoesImplementInterface(ActorIn, UInteractInterface::StaticClass()))
 		{
-			Server_InventoryItemChanged(ActorIn);
-			return;
-		}
-	
-		*/
-		if (ActorIn)
-		{
-			if (UKismetSystemLibrary::DoesImplementInterface(ActorIn, UInteractInterface::StaticClass()))
+			UDataTable* DT;
+
+			FName ActorName = IInteractInterface::Execute_GetName(ActorIn, DT);
+			if (!ActorName.IsNone() && DT)
 			{
-				UDataTable* DT;
-
-				FName ActorName = IInteractInterface::Execute_GetName(ActorIn, DT);
-
-				if (!ActorName.IsNone() && DT)
+				if (FInteractiveInfo* Row = DT->FindRow<FInteractiveInfo>(ActorName, ""))
 				{
-					if (FInteractiveInfo* Row = DT->FindRow<FInteractiveInfo>(ActorName, ""))
+					if (PlayerWidgetRef)
 					{
-						//if (IsLocallyControlled() && PlayerWidgetRef)
-						{
-							UE_LOG(LogTemp, Warning, TEXT("PlayerWidgetRef is valid."));
-							PlayerWidgetRef->SetIconImage(Row->InventoryIcon);
-						}
-						//else
-						//{
-						//	UE_LOG(LogTemp, Warning, TEXT("PlayerWidgetRef is not valid."));
-						//}
-						UE_LOG(LogTemp, Warning, TEXT("InventoryItemChanged called.  ActorIn and ActorName are both valid."));	
+						PlayerWidgetRef->SetIconImage(Row->InventoryIcon);
+					}
+					else
+					{
+						UE_LOG(LogTemp, Warning, TEXT("PlayerWidgetRef is not valid."));
 					}
 				}
 				else
@@ -176,35 +167,6 @@ void ACoOpEscapeCharacter::Server_InventoryItemChanged_Implementation(const AAct
 {
 	InventoryItemChanged(ActorIn);
 }
-
-void ACoOpEscapeCharacter::SetPlayerWidgetRef(UPlayerWidget* WidgetIn)
-{
-	PlayerWidgetRef = WidgetIn;
-}
-
-void ACoOpEscapeCharacter::Client_SetPlayerWidgetRef_Implementation(APlayerController* ControllerIn)
-{
-	if (PlayerWidget && ControllerIn)
-	{
-		PlayerWidgetRef = CreateWidget<UPlayerWidget>(ControllerIn, PlayerWidget);
-		PlayerWidgetRef->AddToViewport();
-
-		if (PlayerWidgetRef)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("%s has a valid PlayerWidgetRef"), HasAuthority() ? TEXT("Server") : TEXT("Client"));
-		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Player Widget not set in CoOpEscapeCharacter"));
-	}
-}
-
-void ACoOpEscapeCharacter::Server_SetPlayerWidgetRef_Implementation(APlayerController* ControllerIn)
-{
-	Client_SetPlayerWidgetRef(ControllerIn);
-}
-
 
 void ACoOpEscapeCharacter::Move(const FInputActionValue& Value)
 {
@@ -251,11 +213,3 @@ void ACoOpEscapeCharacter::Test(const FInputActionValue& Value)
 		UE_LOG(LogTemp, Warning, TEXT("Inventory Comp does not have a valid actor"));
 	}
 }
-/*
-void ACoOpEscapeCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(ACoOpEscapeCharacter, PlayerWidgetRef);
-}
-*/

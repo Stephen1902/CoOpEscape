@@ -2,7 +2,6 @@
 
 #include "InteractionComponent.h"
 #include "CoOpEscape/CoOpEscapeCharacter.h"
-#include "CoOpEscape/NewCharacter.h"
 
 // Sets default values for this component's properties
 UInteractionComponent::UInteractionComponent()
@@ -27,15 +26,7 @@ void UInteractionComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OwningCharacter = Cast<ANewCharacter>(GetOwner());
-	if (OwningCharacter)
-	{
-		GetWorld()->GetTimerManager().SetTimer(InteractiveTimer, this, &UInteractionComponent::InteractTimerExpired, TimerFrequency, true, TimerFrequency);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("There is an interation component with no owning character."));
-	}	
+	
 }
 
 void UInteractionComponent::InteractTimerExpired()
@@ -81,4 +72,17 @@ void UInteractionComponent::InteractTimerExpired()
 	}
 
 	//UE_LOG(LogTemp, Warning, TEXT("ActorBeenHit is %s"), ActorBeenHit != nullptr ? *ActorBeenHit->GetName() : TEXT("invalid"));
+}
+
+void UInteractionComponent::SetOwningCharacter(ACoOpEscapeCharacter* CharacterIn)
+{
+	if (CharacterIn)
+	{
+		OwningCharacter = CharacterIn;
+		GetWorld()->GetTimerManager().SetTimer(InteractiveTimer, this, &UInteractionComponent::InteractTimerExpired, TimerFrequency, true, TimerFrequency);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Set Owning Character was called on an Interaction Component but CharacterIn was null."));
+	}	
 }

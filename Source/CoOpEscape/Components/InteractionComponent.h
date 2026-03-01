@@ -7,6 +7,8 @@
 #include "CoOpEscape/World/InteractInterface.h"
 #include "InteractionComponent.generated.h"
 
+class ACoOpEscapeCharacter;
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class COOPESCAPE_API UInteractionComponent : public UActorComponent, public IInteractInterface
 {
@@ -16,6 +18,8 @@ public:
 	// Sets default values for this component's properties
 	UInteractionComponent();
 
+	void SetOwningCharacter(ACoOpEscapeCharacter* CharacterIn);
+	
 	void InteractPressed();
 protected:
 	// Called when the game starts
@@ -23,9 +27,7 @@ protected:
 
 	// Which character in the world owns this component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction Comp")
-	class ANewCharacter* OwningCharacter = nullptr;
-	//class ACoOpEscapeCharacter* OwningCharacter = nullptr;
-	
+	ACoOpEscapeCharacter* OwningCharacter = nullptr;
 	
 	// Distance the line trace extends out of the owning character
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction Comp")

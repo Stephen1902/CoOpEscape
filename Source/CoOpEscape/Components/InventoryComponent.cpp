@@ -2,7 +2,6 @@
 
 #include "InventoryComponent.h"
 #include "CoOpEscape/CoOpEscapeCharacter.h"
-#include "CoOpEscape/NewCharacter.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values for this component's properties
@@ -13,10 +12,22 @@ UInventoryComponent::UInventoryComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
+void UInventoryComponent::SetOwningCharacter(ACoOpEscapeCharacter* CharacterIn)
+{
+	if (CharacterIn)
+	{
+		OwningCharacter = CharacterIn;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Set Owning Character was called on an Inventory Component but CharacterIn was null."));
+	}	
+}
+
 void UInventoryComponent::AddToInventory(AActor* InteractiveActorIn)
 {
-	OwningCharacter = Cast<ANewCharacter>(GetOwner());
-	UE_LOG(LogTemp, Warning, TEXT("Add To Inventory"));
+	//OwningCharacter = Cast<ACoOpEscapeCharacter>(GetOwner());
+	
 	CollectableActor = InteractiveActorIn;
 
 	// OnRep doesn't get called automatically on the server.  Call it.
@@ -38,12 +49,10 @@ void UInventoryComponent::BeginPlay()
 	//OwningCharacter = Cast<ANewCharacter>(GetOwner());
 }
 
-void UInventoryComponent::OnRep_CollectedActor()
+void UInventoryComponent::OnRep_CollectedActor() const
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnRep called") );
 	if (OwningCharacter)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("%s now has CollectedActor %s"), *OwningCharacter->GetName(), *CollectableActor->GetName());
 		OwningCharacter->InventoryItemChanged(CollectableActor);
 	}
 }

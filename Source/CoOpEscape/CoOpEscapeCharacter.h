@@ -98,21 +98,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Character Functions")
 	UInventoryComponent* GetInventoryComp() const { return InventoryComp; }
 
+	UFUNCTION(Client, Reliable)
 	void InventoryItemChanged(const AActor* ActorIn);
 
 	UFUNCTION(Server, Reliable)
 	void Server_InventoryItemChanged(const AActor* ActorIn);
-
-	UFUNCTION(BlueprintCallable)
-	void SetPlayerWidgetRef(class UPlayerWidget* WidgetIn);
-private:
-
-	UFUNCTION(Server, Unreliable)
-	void Server_SetPlayerWidgetRef(APlayerController* ControllerIn);
-
-	UFUNCTION(Client, Unreliable)
-	void Client_SetPlayerWidgetRef(APlayerController* ControllerIn);
-	
-	
+		
 };
 
