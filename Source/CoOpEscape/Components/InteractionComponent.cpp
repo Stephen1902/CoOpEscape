@@ -1,7 +1,10 @@
 // Copyright 2025 DME Games
 
 #include "InteractionComponent.h"
+
+#include "InventoryComponent.h"
 #include "CoOpEscape/CoOpEscapeCharacter.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values for this component's properties
 UInteractionComponent::UInteractionComponent()
@@ -13,6 +16,12 @@ UInteractionComponent::UInteractionComponent()
 
 void UInteractionComponent::InteractPressed()
 {
+	// Check if the owning character is holding something that needs to be placed
+	if (OwningCharacter)
+	{
+		OwningCharacter->GetInventoryComp()->RemoveFromInventory(false);
+	}
+	
 	UE_LOG(LogTemp, Warning, TEXT("ActorBeenHit is %s"), ActorBeenHit != nullptr ? *ActorBeenHit->GetName() : TEXT("invalid"));
 	if (ActorBeenHit)
 	{
@@ -54,10 +63,10 @@ void UInteractionComponent::InteractTimerExpired()
 				ActorBeenHit->SetOwner(nullptr);
 				Execute_OnOverlapEnd(ActorBeenHit);
 			}
-			UE_LOG(LogTemp, Warning, TEXT("Interaction Component has hit %s"), *HitResult.GetActor()->GetName());
 
 			ActorBeenHit = Execute_OnOverlapBegin(HitResult.GetActor(), OwningCharacter);
-			ActorBeenHit->SetOwner(OwningCharacter);
+
+			//ActorBeenHit->SetOwner(OwningCharacter);
 		}
 	}
 	else
@@ -65,6 +74,7 @@ void UInteractionComponent::InteractTimerExpired()
 		// Nothing has been hit.  If there's anything previously hit, clear it
 		if (ActorBeenHit != nullptr)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("Nothing Hit"));
 			ActorBeenHit->SetOwner(nullptr);
 			Execute_OnOverlapEnd(ActorBeenHit);
 			ActorBeenHit = nullptr;
@@ -72,6 +82,27 @@ void UInteractionComponent::InteractTimerExpired()
 	}
 
 	//UE_LOG(LogTemp, Warning, TEXT("ActorBeenHit is %s"), ActorBeenHit != nullptr ? *ActorBeenHit->GetName() : TEXT("invalid"));
+}
+
+void UInteractionComponent::SetActorBeenHit(AActor* ActorIn)
+{
+	if (OwningCharacter && !OwningCharacter->HasAuthority())
+	{
+		Server_SetActorBeenHit(ActorIn);
+		return;
+	}
+
+	ActorBeenHit = ActorIn;	
+}
+
+void UInteractionComponent::Server_SetActorBeenHit_Implementation(AActor* ActorIn)
+{
+	SetActorBeenHit(ActorIn);
+}
+
+bool UInteractionComponent::Server_SetActorBeenHit_Validate(AActor* ActorIn)
+{
+	return OwningCharacter != nullptr; 
 }
 
 void UInteractionComponent::SetOwningCharacter(ACoOpEscapeCharacter* CharacterIn)
@@ -86,3 +117,11 @@ void UInteractionComponent::SetOwningCharacter(ACoOpEscapeCharacter* CharacterIn
 		UE_LOG(LogTemp, Warning, TEXT("Set Owning Character was called on an Interaction Component but CharacterIn was null."));
 	}	
 }
+/*
+void UInteractionComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UInteractionComponent, ActorBeenHit);
+}
+*/

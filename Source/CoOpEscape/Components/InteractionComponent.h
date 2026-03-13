@@ -45,4 +45,7 @@ private:
 
 	UPROPERTY()
 	AActor* ActorBeenHit = nullptr;
+	void SetActorBeenHit(AActor* ActorIn);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetActorBeenHit(AActor* ActorIn);
 };

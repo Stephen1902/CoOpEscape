@@ -3,6 +3,8 @@
 #include "InventoryComponent.h"
 #include "CoOpEscape/CoOpEscapeCharacter.h"
 #include "Net/UnrealNetwork.h"
+#include "../World/InteractiveActor.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values for this component's properties
 UInventoryComponent::UInventoryComponent()
@@ -27,17 +29,45 @@ void UInventoryComponent::SetOwningCharacter(ACoOpEscapeCharacter* CharacterIn)
 void UInventoryComponent::AddToInventory(AActor* InteractiveActorIn)
 {
 	//OwningCharacter = Cast<ACoOpEscapeCharacter>(GetOwner());
-	
-	CollectableActor = InteractiveActorIn;
 
-	// OnRep doesn't get called automatically on the server.  Call it.
-	if (OwningCharacter && OwningCharacter->HasAuthority())
+	if (OwningCharacter)
 	{
-		OnRep_CollectedActor();
+		if (!OwningCharacter->HasAuthority())
+		{
+			ServerAddToInventory(InteractiveActorIn);
+			return;
+		}
+
+		CollectableActor = InteractiveActorIn;
+		OwningCharacter->InventoryItemChanged(CollectableActor);
+		InteractiveActorIn->Destroy();
+	}
+}
+
+void UInventoryComponent::RemoveFromInventory(bool HasBeenPlaced)
+{
+	if (OwningCharacter && !OwningCharacter->HasAuthority())
+	{
+		Server_RemoveFromInventory(HasBeenPlaced);
+		return;
+	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("RemoveFromInventory."));
+	if (CollectableActor)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CollectableActor Valid."));
+		if (!HasBeenPlaced)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("HasBeenPlaced is false."));
+			CreateDroppedActor();
+		}
+		
+		CollectableActor = nullptr;
+		OwningCharacter->InventoryItemChanged(nullptr);
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("No owning character or authortiy"));
+		UE_LOG(LogTemp, Warning, TEXT("CollectableActor Invalid."));
 	}
 }
 
@@ -51,10 +81,78 @@ void UInventoryComponent::BeginPlay()
 
 void UInventoryComponent::OnRep_CollectedActor() const
 {
+	UE_LOG(LogTemp, Warning, TEXT("On Rep Called"));
 	if (OwningCharacter)
 	{
 		OwningCharacter->InventoryItemChanged(CollectableActor);
 	}
+}
+
+void UInventoryComponent::ServerAddToInventory_Implementation(AActor* ActorIn)
+{
+	AddToInventory(ActorIn);
+}
+
+void UInventoryComponent::Server_RemoveFromInventory_Implementation(bool HasBeenPlaced)
+{
+	RemoveFromInventory(HasBeenPlaced);
+}
+
+void UInventoryComponent::CreateDroppedActor()
+{
+	if (OwningCharacter && !OwningCharacter->HasAuthority())
+	{
+		Server_CreateDroppedActor();
+		return;
+	}
+
+	if (CollectableActor && OwningCharacter)
+	{
+		UDataTable* DT;
+
+		const FName ActorName = Cast<AInteractiveActor>(CollectableActor)->GetInteractiveName(DT);
+		UE_LOG(LogTemp, Warning, TEXT("ActorName: %s."), *ActorName.ToString());
+
+		/*
+		if (UKismetSystemLibrary::DoesImplementInterface(CollectableActor, UInteractInterface::StaticClass()))
+		{
+			UDataTable* DT;
+
+			const FName ActorName = Execute_GetName(CollectableActor, DT);
+			UE_LOG(LogTemp, Warning, TEXT("ActorName: %s."), *ActorName.ToString());*/
+			if (!ActorName.IsNone() && DT)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("ActorName & DT."));
+				if (FInteractiveInfo* Row = DT->FindRow<FInteractiveInfo>(ActorName, ""))
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Row."));
+					if (Row->SpawnType == ESpawnType::EDropped)
+					{
+						UE_LOG(LogTemp, Warning, TEXT("ESpawnType::Dropped."));
+						const FVector ActorLocation = OwningCharacter->GetActorLocation();
+						const FVector ActorForwardVector = OwningCharacter->GetActorForwardVector() * 200.f;
+						const FVector SpawnLocation = ActorLocation + ActorForwardVector;
+
+						FActorSpawnParameters SpawnParameters;
+						SpawnParameters.Owner = OwningCharacter;
+						SpawnParameters.Instigator = OwningCharacter;
+						SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+						if (AInteractiveActor* NewActor = GetWorld()->SpawnActor<AInteractiveActor>(Row->ActorToSpawn, SpawnLocation, FRotator::ZeroRotator, SpawnParameters))
+						{
+							NewActor->SetName(FName(Row->ItemName), OwningCharacter);
+						}
+					
+					}					
+				}
+			}
+		}
+	}
+//}
+
+void UInventoryComponent::Server_CreateDroppedActor_Implementation()
+{
+	CreateDroppedActor();
 }
 
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

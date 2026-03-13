@@ -2,6 +2,10 @@
 
 #include "InteractiveActor.h"
 
+#include "CoOpEscape/CoOpEscapeCharacter.h"
+#include "CoOpEscape/Components/InventoryComponent.h"
+#include "Net/UnrealNetwork.h"
+
 // Sets default values
 AInteractiveActor::AInteractiveActor()
 {
@@ -28,32 +32,71 @@ AInteractiveActor::AInteractiveActor()
 */
 }
 
+void AInteractiveActor::SetName(FName NameIn, ACoOpEscapeCharacter* OwnerIn)
+{
+	SetOwner(OwnerIn);
+/*
+	if (!HasAuthority())
+	{
+		Server_SetName(NameIn, OwnerIn);
+		return;
+	}
+*/	
+	if (!NameIn.IsNone())
+	{
+		Name = NameIn;
+
+		if (InfoDataTable)
+		{
+			if (FInteractiveInfo* Row = InfoDataTable->FindRow<FInteractiveInfo>(Name, ""))
+			{
+				MeshComp->SetStaticMesh(Row->DisplayMesh);
+			}
+		}
+
+		MeshComp->SetSimulatePhysics(true);
+		FTimerHandle StopPhysicsTimer;
+		GetWorld()->GetTimerManager().SetTimer(StopPhysicsTimer, this, &AInteractiveActor::OnTimerEnded, .75f, false, .75f);
+	}
+	else
+	{
+		Destroy();
+	}
+}
+
+FName AInteractiveActor::GetInteractiveName(UDataTable*& DataTableOut) const
+{
+	DataTableOut = InfoDataTable;
+	return Name;
+}
+
 // Called when the game starts or when spawned
 void AInteractiveActor::BeginPlay()
 {
 	Super::BeginPlay();
 
 	SetReplicateMovement(true);
-
-	if (InfoDataTable)
+	
+	if (!Name.IsNone())
 	{
-		if (FInteractiveInfo* Row = InfoDataTable->FindRow<FInteractiveInfo>(Name, ""))
-		{
-			MeshComp->SetStaticMesh(Row->DisplayMesh);
-		}
+		SetName(Name, nullptr);
 	}
 }
-
-FName AInteractiveActor::GetName_Implementation(class UDataTable*& DataTableOut) const
+/*
+FName AInteractiveActor::GetName_Implementation(UDataTable*& DataTableOut) const
 {
+//	IInteractInterface::GetName(DataTableOut);
+	
+	UE_LOG(LogTemp, Warning, TEXT("GetName Called."));
 	DataTableOut = InfoDataTable;
 	return Name;
 }
-
+*/
 AActor* AInteractiveActor::OnOverlapBegin_Implementation(AActor* OwnerIn)
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnOverlapBegin called in C++"))
-	//IInteractInterface::OnOverlapBegin_Implementation(OwnerIn);
+	IInteractInterface::OnOverlapBegin_Implementation(OwnerIn);
+
+	UE_LOG(LogTemp, Warning, TEXT("Overlap Begin C++"));
 	
 	if (OwnerIn)
 	{
@@ -70,7 +113,6 @@ AActor* AInteractiveActor::OnOverlapBegin_Implementation(AActor* OwnerIn)
 
 void AInteractiveActor::OnOverlapEnd_Implementation()
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnOverlapEnd called in C++"))
 	IInteractInterface::OnOverlapEnd_Implementation();
 	
 	if (bHighlightOnOverlap)
@@ -82,4 +124,29 @@ void AInteractiveActor::OnOverlapEnd_Implementation()
 void AInteractiveActor::OnInteractBegin_Implementation()
 {
 	IInteractInterface::OnInteractBegin_Implementation();
+	
+	if (LocalSpawnType == ESpawnType::EDropped && GetOwner())
+	{
+		if (ACoOpEscapeCharacter* OwningChar = Cast<ACoOpEscapeCharacter>(GetOwner()))
+		{
+			OwningChar->GetInventoryComp()->AddToInventory(this);
+		}
+	}
+}
+
+void AInteractiveActor::OnTimerEnded()
+{
+	MeshComp->SetSimulatePhysics(false);
+}
+
+void AInteractiveActor::Server_SetName_Implementation(FName NameIn, ACoOpEscapeCharacter* OwnerIn)
+{
+	SetName(NameIn, OwnerIn);
+}
+
+void AInteractiveActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AInteractiveActor, Name);
 }

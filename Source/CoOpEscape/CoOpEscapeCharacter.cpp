@@ -156,11 +156,15 @@ void ACoOpEscapeCharacter::InventoryItemChanged_Implementation(const AActor* Act
 				}
 			}
 		}
-		else
+	}
+	else
+	{
+		if (PlayerWidgetRef)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("InventoryItemChanged called.  ActorIn is not valid."));
+			PlayerWidgetRef->SetIconImage(nullptr);
 		}
 	}
+	
 }
 
 void ACoOpEscapeCharacter::Server_InventoryItemChanged_Implementation(const AActor* ActorIn)
