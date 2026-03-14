@@ -20,7 +20,6 @@ AInteractiveActor::AInteractiveActor()
 	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh Comp"));
 	MeshComp->SetupAttachment(RootComp);
 	MeshComp->SetIsReplicated(true);
-	MeshComp->CustomDepthStencilValue = 1;
 
 	bHighlightOnOverlap = true;
 /*
@@ -81,6 +80,8 @@ void AInteractiveActor::BeginPlay()
 	{
 		SetName(Name, nullptr);
 	}
+
+	MeshComp->CustomDepthStencilValue = 1;
 }
 /*
 FName AInteractiveActor::GetName_Implementation(UDataTable*& DataTableOut) const
@@ -96,7 +97,7 @@ AActor* AInteractiveActor::OnOverlapBegin_Implementation(AActor* OwnerIn)
 {
 	IInteractInterface::OnOverlapBegin_Implementation(OwnerIn);
 
-	UE_LOG(LogTemp, Warning, TEXT("Overlap Begin C++"));
+	
 	
 	if (OwnerIn)
 	{
