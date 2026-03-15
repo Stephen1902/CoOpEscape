@@ -50,6 +50,15 @@ void AInteractiveActor::SetName(FName NameIn, ACoOpEscapeCharacter* OwnerIn)
 			if (FInteractiveInfo* Row = InfoDataTable->FindRow<FInteractiveInfo>(Name, ""))
 			{
 				MeshComp->SetStaticMesh(Row->DisplayMesh);
+
+				LocalItemInfo.ItemName = Row->ItemName;
+				LocalItemInfo.ItemDescription = Row->ItemDescription;
+				LocalItemInfo.PickUpText = Row->PickUpText;
+				LocalItemInfo.DisplayMesh = Row->DisplayMesh;
+				LocalItemInfo.InventoryIcon = Row->InventoryIcon;
+				LocalItemInfo.SpawnType = Row->SpawnType;
+				LocalItemInfo.ActorToSpawn = Row->ActorToSpawn;
+				LocalItemInfo.ItemWeight = Row->ItemWeight;
 			}
 		}
 
@@ -66,7 +75,7 @@ void AInteractiveActor::SetName(FName NameIn, ACoOpEscapeCharacter* OwnerIn)
 FName AInteractiveActor::GetInteractiveName(UDataTable*& DataTableOut) const
 {
 	DataTableOut = InfoDataTable;
-	return Name;
+	return LocalItemInfo.ItemName;
 }
 
 // Called when the game starts or when spawned
@@ -97,8 +106,6 @@ AActor* AInteractiveActor::OnOverlapBegin_Implementation(AActor* OwnerIn)
 {
 	IInteractInterface::OnOverlapBegin_Implementation(OwnerIn);
 
-	
-	
 	if (OwnerIn)
 	{
 		SetOwner(OwnerIn);

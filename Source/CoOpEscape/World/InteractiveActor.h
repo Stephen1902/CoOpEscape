@@ -49,6 +49,10 @@ struct FInteractiveInfo : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interactive Actor")
 	ESpawnType SpawnType;
 
+	// The weight of this item
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interactive Actor")
+	float ItemWeight;
+
 	FInteractiveInfo()
 	{
 		ItemName = FName("Default Name");
@@ -57,6 +61,7 @@ struct FInteractiveInfo : public FTableRowBase
 		InventoryIcon = nullptr;
 		DisplayMesh = nullptr;
 		SpawnType = ESpawnType::EDropped;
+		ItemWeight = 0.0f;
 	}
 };
 
@@ -90,6 +95,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interactive Actor")
 	UDataTable* InfoDataTable;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interactive Actor");
+	FInteractiveInfo LocalItemInfo;
+	
 private:
 	//virtual FName GetName_Implementation(UDataTable*& DataTableOut) const override;
 	virtual AActor* OnOverlapBegin_Implementation(AActor* OwnerIn) override;

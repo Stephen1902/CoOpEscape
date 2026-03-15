@@ -128,9 +128,13 @@ void UInventoryComponent::CreateDroppedActor()
 					UE_LOG(LogTemp, Warning, TEXT("Row."));
 					if (Row->SpawnType == ESpawnType::EDropped)
 					{
+						FVector EyesLoc;
+						FRotator EyesRot;
+
+						OwningCharacter->GetActorEyesViewPoint(EyesLoc, EyesRot);
 						UE_LOG(LogTemp, Warning, TEXT("ESpawnType::Dropped."));
-						const FVector ActorLocation = OwningCharacter->GetActorLocation();
-						const FVector ActorForwardVector = OwningCharacter->GetActorForwardVector() * 200.f;
+						const FVector ActorLocation = EyesLoc;
+						const FVector ActorForwardVector = EyesRot.Vector() * 200.f;
 						const FVector SpawnLocation = ActorLocation + ActorForwardVector;
 
 						FActorSpawnParameters SpawnParameters;

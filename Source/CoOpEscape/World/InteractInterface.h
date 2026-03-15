@@ -32,4 +32,8 @@ public:
 	void GetItemInfo(FText& ItemNameOut, FText& ItemDescOut); 
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	FName GetName(class UDataTable*& DataTableOut) const;
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	float GetItemWeight() const;
+	
+	
 };
