@@ -43,7 +43,7 @@ private:
 	UFUNCTION()
 	void InteractTimerExpired();
 
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	AActor* ActorBeenHit = nullptr;
 	void SetActorBeenHit(AActor* ActorIn);
 	UFUNCTION(Server, Reliable, WithValidation)

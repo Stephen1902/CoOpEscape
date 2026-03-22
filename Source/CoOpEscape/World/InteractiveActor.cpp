@@ -1,10 +1,7 @@
 // Copyright 2025 DME Games
 
 #include "InteractiveActor.h"
-
-#include "CoOpEscape/CoOpEscapeCharacter.h"
 #include "CoOpEscape/Components/InventoryComponent.h"
-#include "Net/UnrealNetwork.h"
 
 // Sets default values
 AInteractiveActor::AInteractiveActor()
@@ -31,52 +28,6 @@ AInteractiveActor::AInteractiveActor()
 */
 }
 
-void AInteractiveActor::SetName(FName NameIn, ACoOpEscapeCharacter* OwnerIn)
-{
-	SetOwner(OwnerIn);
-/*
-	if (!HasAuthority())
-	{
-		Server_SetName(NameIn, OwnerIn);
-		return;
-	}
-*/	
-	if (!NameIn.IsNone())
-	{
-		Name = NameIn;
-
-		if (InfoDataTable)
-		{
-			if (FInteractiveInfo* Row = InfoDataTable->FindRow<FInteractiveInfo>(Name, ""))
-			{
-				MeshComp->SetStaticMesh(Row->DisplayMesh);
-
-				LocalItemInfo.ItemName = Row->ItemName;
-				LocalItemInfo.ItemDescription = Row->ItemDescription;
-				LocalItemInfo.PickUpText = Row->PickUpText;
-				LocalItemInfo.DisplayMesh = Row->DisplayMesh;
-				LocalItemInfo.InventoryIcon = Row->InventoryIcon;
-				LocalItemInfo.SpawnType = Row->SpawnType;
-				LocalItemInfo.ActorToSpawn = Row->ActorToSpawn;
-				LocalItemInfo.ItemWeight = Row->ItemWeight;
-			}
-		}
-
-		MeshComp->SetSimulatePhysics(true);
-		FTimerHandle StopPhysicsTimer;
-		GetWorld()->GetTimerManager().SetTimer(StopPhysicsTimer, this, &AInteractiveActor::OnTimerEnded, .75f, false, .75f);
-	}
-	else
-	{
-		Destroy();
-	}
-}
-
-FName AInteractiveActor::GetInteractiveName(UDataTable*& DataTableOut) const
-{
-	DataTableOut = InfoDataTable;
-	return LocalItemInfo.ItemName;
-}
 
 // Called when the game starts or when spawned
 void AInteractiveActor::BeginPlay()
@@ -84,11 +35,6 @@ void AInteractiveActor::BeginPlay()
 	Super::BeginPlay();
 
 	SetReplicateMovement(true);
-	
-	if (!Name.IsNone())
-	{
-		SetName(Name, nullptr);
-	}
 
 	MeshComp->CustomDepthStencilValue = 1;
 }
@@ -133,28 +79,5 @@ void AInteractiveActor::OnInteractBegin_Implementation()
 {
 	IInteractInterface::OnInteractBegin_Implementation();
 	
-	if (LocalSpawnType == ESpawnType::EDropped && GetOwner())
-	{
-		if (ACoOpEscapeCharacter* OwningChar = Cast<ACoOpEscapeCharacter>(GetOwner()))
-		{
-			OwningChar->GetInventoryComp()->AddToInventory(this);
-		}
-	}
 }
 
-void AInteractiveActor::OnTimerEnded()
-{
-	MeshComp->SetSimulatePhysics(false);
-}
-
-void AInteractiveActor::Server_SetName_Implementation(FName NameIn, ACoOpEscapeCharacter* OwnerIn)
-{
-	SetName(NameIn, OwnerIn);
-}
-
-void AInteractiveActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(AInteractiveActor, Name);
-}

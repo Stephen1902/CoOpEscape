@@ -4,7 +4,7 @@
 #include "CoOpEscape/CoOpEscapeCharacter.h"
 #include "Net/UnrealNetwork.h"
 #include "../World/InteractiveActor.h"
-#include "Kismet/KismetSystemLibrary.h"
+#include "CoOpEscape/World/PickupActor.h"
 
 // Sets default values for this component's properties
 UInventoryComponent::UInventoryComponent()
@@ -29,18 +29,19 @@ void UInventoryComponent::SetOwningCharacter(ACoOpEscapeCharacter* CharacterIn)
 void UInventoryComponent::AddToInventory(AActor* InteractiveActorIn)
 {
 	//OwningCharacter = Cast<ACoOpEscapeCharacter>(GetOwner());
-
+	
 	if (OwningCharacter)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Owning Character"))
 		if (!OwningCharacter->HasAuthority())
 		{
 			ServerAddToInventory(InteractiveActorIn);
 			return;
 		}
-
+		
 		CollectableActor = InteractiveActorIn;
 		OwningCharacter->InventoryItemChanged(CollectableActor);
-		InteractiveActorIn->Destroy();
+		CollectableActor->Destroy();
 	}
 }
 
@@ -110,7 +111,7 @@ void UInventoryComponent::CreateDroppedActor()
 	{
 		UDataTable* DT;
 
-		const FName ActorName = Cast<AInteractiveActor>(CollectableActor)->GetInteractiveName(DT);
+		const FName ActorName = Cast<APickupActor>(CollectableActor)->GetInteractiveName(DT);
 		UE_LOG(LogTemp, Warning, TEXT("ActorName: %s."), *ActorName.ToString());
 
 		/*
@@ -142,7 +143,7 @@ void UInventoryComponent::CreateDroppedActor()
 						SpawnParameters.Instigator = OwningCharacter;
 						SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-						if (AInteractiveActor* NewActor = GetWorld()->SpawnActor<AInteractiveActor>(Row->ActorToSpawn, SpawnLocation, FRotator::ZeroRotator, SpawnParameters))
+						if (APickupActor* NewActor = GetWorld()->SpawnActor<APickupActor>(Row->ActorToSpawn, SpawnLocation, FRotator::ZeroRotator, SpawnParameters))
 						{
 							NewActor->SetName(FName(Row->ItemName), OwningCharacter);
 						}

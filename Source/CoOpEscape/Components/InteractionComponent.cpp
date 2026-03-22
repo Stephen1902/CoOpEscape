@@ -65,7 +65,14 @@ void UInteractionComponent::InteractTimerExpired()
 			}
 
 			ActorBeenHit = Execute_OnOverlapBegin(HitResult.GetActor(), OwningCharacter);
-
+			if (ActorBeenHit)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Actor Been Hit is %s"), *ActorBeenHit->GetName());
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Interface actor called, actor been hit not set."));
+			}
 			//ActorBeenHit->SetOwner(OwningCharacter);
 		}
 	}
@@ -117,11 +124,10 @@ void UInteractionComponent::SetOwningCharacter(ACoOpEscapeCharacter* CharacterIn
 		UE_LOG(LogTemp, Warning, TEXT("Set Owning Character was called on an Interaction Component but CharacterIn was null."));
 	}	
 }
-/*
+
 void UInteractionComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UInteractionComponent, ActorBeenHit);
 }
-*/

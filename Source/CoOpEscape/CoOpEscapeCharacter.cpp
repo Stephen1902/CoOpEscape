@@ -10,7 +10,7 @@
 #include "Components/InteractionComponent.h"
 #include "Components/InventoryComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "World/InteractiveActor.h"
+#include "World/PickupActor.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ACoOpEscapeCharacter
